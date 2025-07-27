@@ -1,130 +1,258 @@
 # AutoTitle - AI-Powered Title Generator for Obsidian
 
-Automatically generate meaningful titles for your Obsidian notes using OpenAI's powerful language models.
+Automatically generate meaningful titles for your Obsidian notes using OpenAI's latest and most powerful language models.
 
-## Features
+## 🚀 Features
 
-- 🤖 **AI-Powered Title Generation** - Uses GPT-3.5/GPT-4 to create contextual titles
-- 🔄 **Multiple Trigger Modes** - Manual, semi-automatic, or fully automatic generation
-- 🌍 **Multi-language Support** - Auto-detect language or choose from supported languages
-- ⚡ **Quick Hotkey** - Generate titles instantly with `Ctrl+Shift+H`
-- 🎛️ **Customizable Settings** - Adjust AI model, creativity level, and behavior
-- 📝 **Smart Integration** - Works seamlessly within your Obsidian workflow
+- 🤖 **Latest AI Models** - Powered by OpenAI's newest models including GPT-4o, GPT-4o-mini, and GPT-4 Turbo
+- 🔄 **Flexible Generation Modes** - Manual, semi-automatic, or fully automatic title generation
+- 🌍 **Multi-language Support** - Auto-detect language or choose from 20+ supported languages
+- ⚡ **Instant Generation** - Quick hotkey access with `Ctrl+Shift+H` (Windows/Linux) or `Cmd+Shift+H` (Mac)
+- 🎛️ **Customizable Settings** - Fine-tune AI behavior, creativity level, and generation preferences
+- 📝 **Smart Integration** - Seamlessly integrates with your existing Obsidian workflow
+- 🔒 **Privacy-First** - Your API key stays local, no data logging or storage
 
-## Installation
+## 📦 Installation
 
-1. Open Obsidian Settings
+### From Obsidian Community Plugins (Recommended)
+1. Open **Obsidian Settings**
 2. Navigate to **Community Plugins** and disable **Safe Mode**
-3. Click **Browse** and search for "AutoTitle"
-4. Install and enable the plugin
+3. Click **Browse** and search for **"AutoTitle"**
+4. Click **Install** and then **Enable**
 
-## Setup
+### Manual Installation
+1. Download the latest release files (`main.js`, `manifest.json`, `styles.css`)
+2. Create folder: `VaultFolder/.obsidian/plugins/autotitle/`
+3. Copy the files to this folder
+4. Restart Obsidian and enable the plugin
+
+## ⚙️ Setup & Configuration
 
 ### Getting Your OpenAI API Key
 
-1. Sign up at [OpenAI Platform](https://platform.openai.com/)
-2. Navigate to [API Keys](https://platform.openai.com/api-keys)
-3. Create a new secret key
-4. Copy the key to the plugin settings
+1. Visit [OpenAI Platform](https://platform.openai.com/)
+2. Sign up or log in to your account
+3. Navigate to [API Keys](https://platform.openai.com/api-keys)
+4. Click **"Create new secret key"**
+5. Copy the generated key (starts with `sk-`)
 
 ### Plugin Configuration
 
-1. Open Obsidian Settings
+1. Open **Obsidian Settings**
 2. Go to **Community Plugins** → **AutoTitle**
-3. Enter your OpenAI API key
-4. Customize settings to your preference
+3. Paste your OpenAI API key
+4. Configure your preferred settings
 
-## Usage
+## 🎯 Usage Guide
 
 ### Quick Start
-1. Write some content in your note
+1. Write content in your note (minimum 100 characters recommended)
 2. Press `Ctrl+Shift+H` (Windows/Linux) or `Cmd+Shift+H` (Mac)
-3. Review the suggested title and accept or reject it
+3. Review the AI-generated title suggestion
+4. Click **Accept** to apply or **Reject** to dismiss
 
-### Trigger Modes
+### Generation Modes
 
-**Manual Mode** (Default)
-- Use hotkey only: `Ctrl+Shift+H`
-- Full control over when titles are generated
+#### Manual Mode (Default)
+- **Best for**: Full control over title generation
+- **How it works**: Use hotkey only when you want a title
+- **Recommended for**: Users who prefer explicit control
 
-**Semi-Auto Mode**
-- Shows a generation button after you stop typing
-- Click the button to generate a title
+#### Semi-Auto Mode
+- **Best for**: Balanced automation with user control
+- **How it works**: Shows generation button after typing pause
+- **Recommended for**: Users who want suggestions without interruption
 
-**Auto Mode**
-- Automatically generates titles after typing pause
-- Optional notification before generation
+#### Auto Mode
+- **Best for**: Seamless, hands-free experience
+- **How it works**: Automatically generates titles after typing pause
+- **Recommended for**: Power users who want maximum automation
 
-### Settings Overview
+## 🤖 AI Models Explained
 
-| Setting | Description | Default |
-|---------|-------------|---------|
-| **OpenAI API Key** | Your API key for OpenAI access | Required |
-| **AI Model** | Choose from GPT-4o, GPT-4.1, GPT-3.5 Turbo | gpt-3.5-turbo |
-| **Creativity** | Controls randomness (0.0-1.0) | 0.3 |
-| **Trigger Mode** | Manual, Semi-auto, or Auto | Manual |
-| **Language** | Target language or auto-detect | Auto |
-| **Replace Mode** | Replace without confirmation | Disabled |
-| **Min Content Length** | Minimum characters before generation | 100 |
-| **Timeout** | Delay after typing (ms) | 5000 |
+### GPT-4o (Recommended for Quality)
+- **Best for**: High-quality, nuanced titles
+- **Strengths**: Superior understanding of context and tone
+- **Cost**: Higher per request
+- **Use when**: Quality is more important than speed/cost
 
-## Supported Languages
+### GPT-4o-mini (Recommended for Most Users)
+- **Best for**: Fast, cost-effective generation
+- **Strengths**: Excellent balance of quality and speed
+- **Cost**: Most economical option
+- **Use when**: You need frequent title generation
 
-AutoTitle supports title generation in multiple languages:
-- English, Spanish, French, German, Italian
-- Portuguese, Russian, Chinese, Japanese, Korean
-- And many more through auto-detection
+### GPT-4 Turbo
+- **Best for**: Complex, technical content
+- **Strengths**: Deep understanding of specialized topics
+- **Cost**: Premium pricing
+- **Use when**: Working with technical or academic content
 
-## Examples
+### GPT-4 (Legacy)
+- **Best for**: Consistent, reliable results
+- **Strengths**: Proven performance across various content types
+- **Cost**: Standard pricing
+- **Use when**: You prefer the original GPT-4 behavior
 
-**Input Note:**
+### GPT-3.5 Turbo (Legacy)
+- **Best for**: Basic title generation
+- **Strengths**: Fast and economical
+- **Cost**: Lowest cost option
+- **Use when**: Budget is the primary concern
+
+## ⚙️ Settings Reference
+
+| Setting | Description | Options | Default |
+|---------|-------------|---------|---------|
+| **OpenAI API Key** | Your personal API key | Text input | Required |
+| **AI Model** | Choose the AI model | GPT-4o, GPT-4o-mini, GPT-4 Turbo, GPT-4, GPT-3.5 Turbo | GPT-4o-mini |
+| **Creativity (Temperature)** | Controls randomness in generation | 0.0 (conservative) - 1.0 (creative) | 0.3 |
+| **Trigger Mode** | How titles are generated | Manual, Semi-auto, Auto | Manual |
+| **Language** | Target language for titles | Auto-detect, English, Spanish, French, etc. | Auto-detect |
+| **Replace Mode** | Skip confirmation dialog | On/Off | Off |
+| **Min Content Length** | Minimum characters before generation | Number (characters) | 100 |
+| **Timeout** | Delay after typing stops | Milliseconds | 5000 |
+| **Show Indicator** | Display notification before auto-generation | On/Off | On |
+| **Generation Count** | Max generations per note | Number | 1 |
+
+## 🌍 Supported Languages
+
+AutoTitle automatically detects and generates titles in:
+
+**European Languages:**
+- English, Spanish, French, German, Italian, Portuguese, Russian, Polish, Dutch, Swedish, Norwegian, Danish
+
+**Asian Languages:**
+- Chinese (Simplified & Traditional), Japanese, Korean, Hindi, Bengali, Arabic, Thai, Vietnamese
+
+**And many more through intelligent auto-detection!**
+
+## 💡 Usage Examples
+
+### Academic Note
+**Input:**
 ```
-Today I learned about the importance of proper sleep hygiene. 
-Good sleep habits include maintaining a consistent sleep schedule, 
-creating a comfortable sleep environment, and avoiding screens 
-before bedtime. These practices can significantly improve sleep 
-quality and overall health.
+The concept of neuroplasticity refers to the brain's ability to reorganize 
+itself by forming new neural connections throughout life. This remarkable 
+capacity allows the brain to compensate for injury and disease and to 
+adjust their activities in response to new situations or changes in their 
+environment.
 ```
 
 **Generated Title:**
 ```
-# The Importance of Sleep Hygiene for Better Health
+# Understanding Neuroplasticity: The Brain's Ability to Adapt and Reorganize
 ```
 
-## Troubleshooting
+### Meeting Notes
+**Input:**
+```
+Discussed Q4 marketing strategy with the team. Key points: increase social 
+media presence, launch influencer partnerships, focus on video content, 
+and allocate 30% more budget to digital advertising. Next steps include 
+creating content calendar and identifying potential influencers.
+```
 
-### Plugin Not Working
-- Verify your OpenAI API key is correct and active
-- Check your OpenAI account has available credits
-- Ensure stable internet connection
+**Generated Title:**
+```
+# Q4 Marketing Strategy Meeting: Social Media and Influencer Focus
+```
 
-### Wrong Language Generation
-- Set your preferred language in settings instead of auto-detect
-- Ensure your note has sufficient content for language detection
-- Try different AI models if results are inconsistent
+### Personal Journal
+**Input:**
+```
+Today was challenging but rewarding. Started the morning with meditation, 
+which helped center my thoughts. The presentation at work went better than 
+expected, and I received positive feedback from the team. Feeling grateful 
+for the support and looking forward to tomorrow's challenges.
+```
 
-### Auto-generation Issues
-- Enable "Auto-generation" in trigger mode settings
-- Adjust timeout if generation occurs too frequently or slowly
-- Check minimum content length requirement is met
+**Generated Title:**
+```
+# A Challenging Yet Rewarding Day: Meditation, Success, and Gratitude
+```
 
-## Privacy & Security
+## 🔧 Troubleshooting
 
-- Your OpenAI API key is stored locally in Obsidian
-- Note content is sent to OpenAI only for title generation
-- No data is stored or logged by the plugin
-- You maintain full control over your API usage and costs
+### Common Issues
 
-## Support
+#### "API Key Invalid" Error
+- **Solution**: Verify your API key is correct and active
+- **Check**: Ensure the key starts with `sk-` and has no extra spaces
+- **Verify**: Log into OpenAI platform to confirm key status
 
-- **Issues**: Report bugs or request features on GitHub
-- **Documentation**: Full documentation available in the repository
-- **Community**: Join discussions in Obsidian community forums
+#### "Insufficient Credits" Error
+- **Solution**: Add credits to your OpenAI account
+- **Check**: Visit [OpenAI Billing](https://platform.openai.com/account/billing)
+- **Note**: New accounts often include free credits
 
-## License
+#### Titles in Wrong Language
+- **Solution**: Set specific language instead of auto-detect
+- **Tip**: Ensure your note has enough content for accurate detection
+- **Alternative**: Try different AI models for better language handling
 
-MIT License - see the full license in the repository.
+#### Auto-generation Not Working
+- **Check**: Trigger mode is set to "Auto" or "Semi-auto"
+- **Verify**: Content meets minimum length requirement
+- **Adjust**: Increase timeout if generation happens too quickly
+- **Test**: Try manual generation first to verify setup
+
+#### Slow Generation
+- **Solution**: Switch to GPT-4o-mini for faster responses
+- **Check**: Your internet connection stability
+- **Consider**: OpenAI API response times vary by demand
+
+### Performance Tips
+
+1. **For Speed**: Use GPT-4o-mini model
+2. **For Quality**: Use GPT-4o or GPT-4 Turbo
+3. **For Cost**: Use GPT-4o-mini or GPT-3.5 Turbo
+4. **For Accuracy**: Provide more context in your notes
+5. **For Consistency**: Set specific language instead of auto-detect
+
+## 🔒 Privacy & Security
+
+- **Local Storage**: Your API key is stored only in your local Obsidian settings
+- **No Logging**: The plugin doesn't log or store any of your content
+- **Direct Communication**: Your notes are sent directly to OpenAI's API
+- **User Control**: You control what content is sent for title generation
+- **No Tracking**: No analytics or usage tracking implemented
+
+## 💰 Cost Considerations
+
+Title generation costs depend on your chosen model:
+
+- **GPT-4o-mini**: ~$0.0001-0.0003 per title (most economical)
+- **GPT-4o**: ~$0.001-0.003 per title (balanced)
+- **GPT-4 Turbo**: ~$0.002-0.006 per title (premium)
+
+*Costs are approximate and depend on content length and OpenAI's current pricing.*
+
+## 🆘 Support & Community
+
+### Getting Help
+- **GitHub Issues**: [Report bugs or request features](https://github.com/zaharenok/AutoTitle-Obsidian-Plugin-Publish/issues)
+- **Obsidian Forum**: Search for "AutoTitle" in community discussions
+- **Documentation**: Comprehensive guides available in the repository
+
+### Contributing
+- **Feedback**: Share your experience and suggestions
+- **Bug Reports**: Help improve the plugin by reporting issues
+- **Feature Requests**: Suggest new functionality
+
+## 📄 License
+
+This plugin is released under the MIT License. See the repository for full license details.
+
+## 🙏 Acknowledgments
+
+- **OpenAI** for providing powerful language models
+- **Obsidian Team** for creating an amazing platform
+- **Community Contributors** for feedback and suggestions
+- **Plugin Users** for making this project worthwhile
 
 ---
 
 **Made with ❤️ for the Obsidian community**
+
+*Transform your note-taking with AI-powered titles. Install AutoTitle today and experience the future of intelligent note organization.*

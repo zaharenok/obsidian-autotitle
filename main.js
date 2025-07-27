@@ -32,7 +32,7 @@ var import_obsidian3 = require("obsidian");
 // settings.ts
 var DEFAULT_SETTINGS = {
   apiKey: "",
-  model: "gpt-3.5-turbo",
+  model: "gpt-4o-mini",
   temperature: 0.3,
   autoTrigger: false,
   language: "auto",
@@ -59,7 +59,7 @@ var AutoTitleSettingTab = class extends import_obsidian.PluginSettingTab {
       this.plugin.settings.apiKey = value;
       await this.plugin.saveSettings();
     }));
-    new import_obsidian.Setting(containerEl).setName("OpenAI Model").setDesc("Select the model for title generation").addDropdown((dropdown) => dropdown.addOption("gpt-4.1", "GPT-4.1").addOption("gpt-4.1-nano", "GPT-4.1 Nano").addOption("gpt-4o", "GPT-4o").addOption("gpt-3.5-turbo", "GPT-3.5 Turbo").setValue(this.plugin.settings.model).onChange(async (value) => {
+    new import_obsidian.Setting(containerEl).setName("OpenAI Model").setDesc("Select the model for title generation").addDropdown((dropdown) => dropdown.addOption("gpt-4o", "GPT-4o (Recommended)").addOption("gpt-4o-mini", "GPT-4o Mini (Fast & Cost-effective)").addOption("gpt-4-turbo", "GPT-4 Turbo").addOption("gpt-4", "GPT-4").addOption("gpt-3.5-turbo", "GPT-3.5 Turbo (Legacy)").setValue(this.plugin.settings.model).onChange(async (value) => {
       this.plugin.settings.model = value;
       await this.plugin.saveSettings();
     }));
