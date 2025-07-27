@@ -4,7 +4,7 @@ Automatically generate meaningful titles for your Obsidian notes using OpenAI's 
 
 ## 🚀 Features
 
-- 🤖 **Latest AI Models** - Powered by OpenAI's newest models including GPT-4o, GPT-4o-mini, and GPT-4 Turbo
+- 🤖 **Latest AI Models** - Powered by OpenAI's newest models including GPT-4.1, GPT-4.1 mini, GPT-4.1 nano, GPT-4o, and GPT-4o-mini
 - 🔄 **Flexible Generation Modes** - Manual, semi-automatic, or fully automatic title generation
 - 🌍 **Multi-language Support** - Auto-detect language or choose from 20+ supported languages
 - ⚡ **Instant Generation** - Quick hotkey access with `Ctrl+Shift+H` (Windows/Linux) or `Cmd+Shift+H` (Mac)
@@ -70,42 +70,42 @@ Automatically generate meaningful titles for your Obsidian notes using OpenAI's 
 
 ## 🤖 AI Models Explained
 
-### GPT-4o (Recommended for Quality)
+### GPT-4.1 (Latest Flagship Model)
+- **Best for**: Superior coding and instruction following
+- **Strengths**: Enhanced reasoning, precise instruction following, 1M context window
+- **Cost**: Premium pricing
+- **Use when**: You need the highest quality and most advanced capabilities
+
+### GPT-4.1 mini (Recommended for Most Users)
+- **Best for**: Balanced performance and cost-effectiveness
+- **Strengths**: Improved coding abilities, better instruction following than GPT-4o
+- **Cost**: Moderate pricing
+- **Use when**: You want latest improvements with reasonable cost
+
+### GPT-4.1 nano (Most Economical)
+- **Best for**: Fast, lightweight title generation
+- **Strengths**: Quick responses, lowest cost in GPT-4.1 family
+- **Cost**: Most economical option
+- **Use when**: Budget is primary concern but you want latest model family
+
+### GPT-4o (Proven Quality)
 - **Best for**: High-quality, nuanced titles
 - **Strengths**: Superior understanding of context and tone
-- **Cost**: Higher per request
-- **Use when**: Quality is more important than speed/cost
+- **Cost**: Standard pricing
+- **Use when**: You prefer the established GPT-4o performance
 
-### GPT-4o-mini (Recommended for Most Users)
+### GPT-4o-mini (Cost-Effective)
 - **Best for**: Fast, cost-effective generation
 - **Strengths**: Excellent balance of quality and speed
-- **Cost**: Most economical option
-- **Use when**: You need frequent title generation
-
-### GPT-4 Turbo
-- **Best for**: Complex, technical content
-- **Strengths**: Deep understanding of specialized topics
-- **Cost**: Premium pricing
-- **Use when**: Working with technical or academic content
-
-### GPT-4 (Legacy)
-- **Best for**: Consistent, reliable results
-- **Strengths**: Proven performance across various content types
-- **Cost**: Standard pricing
-- **Use when**: You prefer the original GPT-4 behavior
-
-### GPT-3.5 Turbo (Legacy)
-- **Best for**: Basic title generation
-- **Strengths**: Fast and economical
-- **Cost**: Lowest cost option
-- **Use when**: Budget is the primary concern
+- **Cost**: Budget-friendly option
+- **Use when**: You need frequent title generation at low cost
 
 ## ⚙️ Settings Reference
 
 | Setting | Description | Options | Default |
 |---------|-------------|---------|---------|
 | **OpenAI API Key** | Your personal API key | Text input | Required |
-| **AI Model** | Choose the AI model | GPT-4o, GPT-4o-mini, GPT-4 Turbo, GPT-4, GPT-3.5 Turbo | GPT-4o-mini |
+| **AI Model** | Choose the AI model | GPT-4.1, GPT-4.1 mini, GPT-4.1 nano, GPT-4o, GPT-4o-mini | GPT-4o-mini |
 | **Creativity (Temperature)** | Controls randomness in generation | 0.0 (conservative) - 1.0 (creative) | 0.3 |
 | **Trigger Mode** | How titles are generated | Manual, Semi-auto, Auto | Manual |
 | **Language** | Target language for titles | Auto-detect, English, Spanish, French, etc. | Auto-detect |
@@ -198,17 +198,18 @@ for the support and looking forward to tomorrow's challenges.
 - **Test**: Try manual generation first to verify setup
 
 #### Slow Generation
-- **Solution**: Switch to GPT-4o-mini for faster responses
+- **Solution**: Switch to GPT-4.1 nano or GPT-4o-mini for faster responses
 - **Check**: Your internet connection stability
 - **Consider**: OpenAI API response times vary by demand
 
 ### Performance Tips
 
-1. **For Speed**: Use GPT-4o-mini model
-2. **For Quality**: Use GPT-4o or GPT-4 Turbo
-3. **For Cost**: Use GPT-4o-mini or GPT-3.5 Turbo
-4. **For Accuracy**: Provide more context in your notes
-5. **For Consistency**: Set specific language instead of auto-detect
+1. **For Speed**: Use GPT-4.1 nano or GPT-4o-mini model
+2. **For Quality**: Use GPT-4.1 or GPT-4o model
+3. **For Cost**: Use GPT-4.1 nano or GPT-4o-mini
+4. **For Latest Features**: Use GPT-4.1 family models
+5. **For Accuracy**: Provide more context in your notes
+6. **For Consistency**: Set specific language instead of auto-detect
 
 ## 🔒 Privacy & Security
 
@@ -222,9 +223,11 @@ for the support and looking forward to tomorrow's challenges.
 
 Title generation costs depend on your chosen model:
 
-- **GPT-4o-mini**: ~$0.0001-0.0003 per title (most economical)
-- **GPT-4o**: ~$0.001-0.003 per title (balanced)
-- **GPT-4 Turbo**: ~$0.002-0.006 per title (premium)
+- **GPT-4.1 nano**: ~$0.0001-0.0003 per title (most economical)
+- **GPT-4o-mini**: ~$0.0002-0.0004 per title (budget-friendly)
+- **GPT-4.1 mini**: ~$0.0005-0.001 per title (balanced)
+- **GPT-4o**: ~$0.001-0.003 per title (standard)
+- **GPT-4.1**: ~$0.002-0.005 per title (premium)
 
 *Costs are approximate and depend on content length and OpenAI's current pricing.*
 
