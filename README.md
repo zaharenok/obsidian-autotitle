@@ -4,13 +4,15 @@ Automatically generate meaningful titles for your Obsidian notes using OpenAI's 
 
 ## 🚀 Features
 
-- 🤖 **Latest AI Models** - Powered by OpenAI's latest GPT models including GPT-4.1, GPT-4.1 mini, GPT-4.1 nano, GPT-4o, and GPT-4o-mini
+- 🤖 **Latest AI Models** - Powered by OpenAI's cutting-edge GPT models including GPT-4o, GPT-4o-mini, GPT-4 Turbo, and GPT-4
 - 🔄 **Flexible Generation Modes** - Manual, semi-automatic, or fully automatic title generation
 - 🌍 **Multi-language Support** - Auto-detect language or choose from 20+ supported languages
 - ⚡ **Instant Generation** - Quick hotkey access with `Ctrl+Shift+H` (Windows/Linux) or `Cmd+Shift+H` (Mac)
 - 🎛️ **Customizable Settings** - Fine-tune AI behavior, creativity level, and generation preferences
 - 📝 **Smart Integration** - Seamlessly integrates with your existing Obsidian workflow
 - 🔒 **Privacy-First** - Your API key stays local, no data logging or storage
+- ✨ **Duplicate Prevention** - Automatically prevents duplicate titles in note content
+- 🔧 **Migration Tools** - Fix existing notes with duplicate titles
 
 ## 📦 Installation
 
@@ -74,49 +76,57 @@ Automatically generate meaningful titles for your Obsidian notes using OpenAI's 
 - **How it works**: Automatically generates titles after typing pause
 - **Recommended for**: Power users who want maximum automation
 
+### Available Commands
+
+- **Generate title for note** (`Ctrl+Shift+H`) - Generate title with confirmation
+- **Generate title without confirmation** (`Ctrl+Shift+Alt+H`) - Direct title application
+- **Fix duplicate titles in all notes** - Batch fix existing notes with duplicate titles
+- **Fix duplicate title in current note** - Fix current note only
+- **Reset rejected files** - Allow auto-generation for previously rejected notes
+
 ## 🤖 AI Models Explained
 
-### GPT-4.1 (Latest Flagship Model)
+### GPT-4o (Recommended)
 
-- **Best for**: Superior coding and instruction following
-- **Strengths**: Enhanced reasoning, precise instruction following, 1M context window
-- **Cost**: Premium pricing
-- **Use when**: You need the highest quality and most advanced capabilities
-
-### GPT-4.1 mini (Recommended for Most Users)
-
-- **Best for**: Balanced performance and cost-effectiveness
-- **Strengths**: Improved coding abilities, better instruction following than GPT-4o
-- **Cost**: Moderate pricing
-- **Use when**: You want latest improvements with reasonable cost
-
-### GPT-4.1 nano (Most Economical)
-
-- **Best for**: Fast, lightweight title generation
-- **Strengths**: Quick responses, lowest cost in GPT-4.1 family
-- **Cost**: Most economical option
-- **Use when**: Budget is primary concern but you want latest model family
-
-### GPT-4o (Proven Quality)
-
-- **Best for**: High-quality, nuanced titles
-- **Strengths**: Superior understanding of context and tone
+- **Best for**: High-quality, nuanced titles with superior reasoning
+- **Strengths**: Excellent understanding of context, tone, and multimodal capabilities
 - **Cost**: Standard pricing
-- **Use when**: You prefer the established GPT-4o performance
+- **Use when**: You want the best balance of quality and performance
 
 ### GPT-4o-mini (Cost-Effective)
 
 - **Best for**: Fast, cost-effective generation
-- **Strengths**: Excellent balance of quality and speed
-- **Cost**: Budget-friendly option
+- **Strengths**: Excellent balance of quality and speed, 128K context window
+- **Cost**: Most budget-friendly option
 - **Use when**: You need frequent title generation at low cost
+
+### GPT-4 Turbo
+
+- **Best for**: Complex content requiring deep understanding
+- **Strengths**: Enhanced reasoning, large context window (128K tokens)
+- **Cost**: Premium pricing
+- **Use when**: Working with complex, technical, or lengthy content
+
+### GPT-4
+
+- **Best for**: Highest quality output for critical content
+- **Strengths**: Superior reasoning and creativity
+- **Cost**: Premium pricing
+- **Use when**: Quality is more important than speed or cost
+
+### GPT-3.5 Turbo (Legacy)
+
+- **Best for**: Basic title generation needs
+- **Strengths**: Fast and economical
+- **Cost**: Lowest cost option
+- **Use when**: Budget is the primary concern
 
 ## ⚙️ Settings Reference
 
 | Setting                      | Description                                 | Options                                                  | Default     |
 | ---------------------------- | ------------------------------------------- | -------------------------------------------------------- | ----------- |
 | **OpenAI API Key**           | Your personal API key                       | Text input                                               | Required    |
-| **AI Model**                 | Choose the AI model                         | GPT-4.1, GPT-4.1 mini, GPT-4.1 nano, GPT-4o, GPT-4o-mini | GPT-4o-mini |
+| **AI Model**                 | Choose the AI model                         | GPT-4o, GPT-4o-mini, GPT-4 Turbo, GPT-4, GPT-3.5 Turbo | GPT-4o-mini |
 | **Creativity (Temperature)** | Controls randomness in generation           | 0.0 (conservative) - 1.0 (creative)                      | 0.3         |
 | **Trigger Mode**             | How titles are generated                    | Manual, Semi-auto, Auto                                  | Manual      |
 | **Language**                 | Target language for titles                  | Auto-detect, English, Spanish, French, etc.              | Auto-detect |
@@ -125,17 +135,17 @@ Automatically generate meaningful titles for your Obsidian notes using OpenAI's 
 | **Timeout**                  | Delay after typing stops                    | Milliseconds                                             | 5000        |
 | **Show Indicator**           | Display notification before auto-generation | On/Off                                                   | On          |
 | **Generation Count**         | Max generations per note                    | Number                                                   | 1           |
+| **Max Title Length**         | Maximum characters for generated titles     | Number (characters)                                      | 100         |
+| **Include Existing Title**   | Consider existing title during generation   | On/Off                                                   | Off         |
 
 ## 🌍 Supported Languages
 
 AutoTitle automatically detects and generates titles in:
 
 **European Languages:**
-
 - English, Spanish, French, German, Italian, Portuguese, Russian, Polish, Dutch, Swedish, Norwegian, Danish
 
 **Asian Languages:**
-
 - Chinese (Simplified & Traditional), Japanese, Korean, Hindi, Bengali, Arabic, Thai, Vietnamese
 
 **And many more through intelligent auto-detection!**
@@ -145,7 +155,6 @@ AutoTitle automatically detects and generates titles in:
 ### Academic Note
 
 **Input:**
-
 ```
 The concept of neuroplasticity refers to the brain's ability to reorganize
 itself by forming new neural connections throughout life. This remarkable
@@ -155,7 +164,6 @@ environment.
 ```
 
 **Generated Title:**
-
 ```
 # Understanding Neuroplasticity: The Brain's Ability to Adapt and Reorganize
 ```
@@ -163,7 +171,6 @@ environment.
 ### Meeting Notes
 
 **Input:**
-
 ```
 Discussed Q4 marketing strategy with the team. Key points: increase social
 media presence, launch influencer partnerships, focus on video content,
@@ -172,7 +179,6 @@ creating content calendar and identifying potential influencers.
 ```
 
 **Generated Title:**
-
 ```
 # Q4 Marketing Strategy Meeting: Social Media and Influencer Focus
 ```
@@ -180,7 +186,6 @@ creating content calendar and identifying potential influencers.
 ### Personal Journal
 
 **Input:**
-
 ```
 Today was challenging but rewarding. Started the morning with meditation,
 which helped center my thoughts. The presentation at work went better than
@@ -189,7 +194,6 @@ for the support and looking forward to tomorrow's challenges.
 ```
 
 **Generated Title:**
-
 ```
 # A Challenging Yet Rewarding Day: Meditation, Success, and Gratitude
 ```
@@ -199,42 +203,42 @@ for the support and looking forward to tomorrow's challenges.
 ### Common Issues
 
 #### "API Key Invalid" Error
-
 - **Solution**: Verify your API key is correct and active
 - **Check**: Ensure the key starts with `sk-` and has no extra spaces
 - **Verify**: Log into OpenAI platform to confirm key status
 
 #### "Insufficient Credits" Error
-
 - **Solution**: Add credits to your OpenAI account
 - **Check**: Visit [OpenAI Billing](https://platform.openai.com/account/billing)
 - **Note**: New accounts often include free credits
 
 #### Titles in Wrong Language
-
 - **Solution**: Set specific language instead of auto-detect
 - **Tip**: Ensure your note has enough content for accurate detection
 - **Alternative**: Try different AI models for better language handling
 
 #### Auto-generation Not Working
-
 - **Check**: Trigger mode is set to "Auto" or "Semi-auto"
 - **Verify**: Content meets minimum length requirement
 - **Adjust**: Increase timeout if generation happens too quickly
 - **Test**: Try manual generation first to verify setup
 
 #### Slow Generation
-
-- **Solution**: Switch to GPT-4.1 nano or GPT-4o-mini for faster responses
+- **Solution**: Switch to GPT-4o-mini for faster responses
 - **Check**: Your internet connection stability
 - **Consider**: OpenAI API response times vary by demand
 
+#### Duplicate Titles Issue
+- **Solution**: Use the "Fix duplicate titles" commands in settings
+- **Prevention**: The plugin now automatically prevents new duplicates
+- **Migration**: Run the migration tool to fix existing notes
+
 ### Performance Tips
 
-1. **For Speed**: Use GPT-4.1 nano or GPT-4o-mini model
-2. **For Quality**: Use GPT-4.1 or GPT-4o model
-3. **For Cost**: Use GPT-4.1 nano or GPT-4o-mini
-4. **For Latest Features**: Use GPT-4.1 family models
+1. **For Speed**: Use GPT-4o-mini model
+2. **For Quality**: Use GPT-4o or GPT-4 Turbo model
+3. **For Cost**: Use GPT-4o-mini or GPT-3.5 Turbo
+4. **For Latest Features**: Use GPT-4o model
 5. **For Accuracy**: Provide more context in your notes
 6. **For Consistency**: Set specific language instead of auto-detect
 
@@ -250,11 +254,11 @@ for the support and looking forward to tomorrow's challenges.
 
 Title generation costs depend on your chosen model:
 
-- **GPT-4.1 nano**: ~$0.0001-0.0003 per title (most economical)
-- **GPT-4o-mini**: ~$0.0002-0.0004 per title (budget-friendly)
-- **GPT-4.1 mini**: ~$0.0005-0.001 per title (balanced)
-- **GPT-4o**: ~$0.001-0.003 per title (standard)
-- **GPT-4.1**: ~$0.002-0.005 per title (premium)
+- **GPT-4o-mini**: ~$0.0001-0.0003 per title (most economical)
+- **GPT-3.5 Turbo**: ~$0.0002-0.0004 per title (budget-friendly)
+- **GPT-4o**: ~$0.001-0.003 per title (recommended)
+- **GPT-4 Turbo**: ~$0.002-0.005 per title (premium)
+- **GPT-4**: ~$0.003-0.008 per title (highest quality)
 
 _Costs are approximate and depend on content length and OpenAI's current pricing._
 
@@ -262,7 +266,7 @@ _Costs are approximate and depend on content length and OpenAI's current pricing
 
 ### Getting Help
 
-- **GitHub Issues**: [Report bugs or request features](https://github.com/zaharenok/AutoTitle-Obsidian-Plugin-Publish/issues)
+- **GitHub Issues**: [Report bugs or request features](https://github.com/zaharenok/obsidian-autotitle/issues)
 - **Obsidian Forum**: Search for "AutoTitle" in community discussions
 - **Documentation**: Comprehensive guides available in the repository
 
@@ -274,31 +278,7 @@ _Costs are approximate and depend on content length and OpenAI's current pricing
 
 ## 📄 License
 
-```
-MIT License
-
-Copyright (c) 2025 zaharenok
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
-This plugin is released under the MIT License. See the repository for full license details.
+MIT License - See the repository for full license details.
 
 ## 🙏 Acknowledgments
 

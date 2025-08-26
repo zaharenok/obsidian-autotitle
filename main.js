@@ -45,7 +45,8 @@ var DEFAULT_SETTINGS = {
   triggerMode: "manual",
   showIndicator: true,
   generationCount: 1,
-  maxTitleLength: 100
+  maxTitleLength: 100,
+  includeExistingTitle: false
 };
 
 // SettingTab.ts
@@ -129,6 +130,10 @@ var AutoTitleSettingTab = class extends import_obsidian.PluginSettingTab {
         await this.plugin.saveSettings();
       }
     }));
+    new import_obsidian.Setting(containerEl).setName("Include Existing Title in Generation").setDesc("When enabled, the existing title will be considered during generation. When disabled, only note content is used.").addToggle((toggle) => toggle.setValue(this.plugin.settings.includeExistingTitle).onChange(async (value) => {
+      this.plugin.settings.includeExistingTitle = value;
+      await this.plugin.saveSettings();
+    }));
     containerEl.createEl("h3", { text: "Duplication Handling" });
     const duplicationInfo = containerEl.createDiv();
     duplicationInfo.innerHTML = `
@@ -147,6 +152,27 @@ var AutoTitleSettingTab = class extends import_obsidian.PluginSettingTab {
     fixCurrentButton.onclick = async () => {
       await this.plugin.fixCurrentNoteTitleFromSettings();
     };
+    containerEl.createEl("h3", { text: "Auto-generation Control" });
+    const rejectedInfo = containerEl.createDiv();
+    rejectedInfo.innerHTML = `
+      <p>When you reject title suggestions, those notes are remembered and won't show auto-generation prompts again. 
+      Use the button below to reset this list and allow auto-generation for all notes again.</p>
+    `;
+    const resetRejectedDiv = containerEl.createDiv();
+    resetRejectedDiv.style.marginTop = "10px";
+    const resetRejectedButton = resetRejectedDiv.createEl("button", { text: "Reset Rejected Files" });
+    resetRejectedButton.onclick = () => {
+      this.plugin.resetRejectedFiles();
+    };
+    const rejectedCount = this.plugin.getRejectedFilesCount();
+    if (rejectedCount > 0) {
+      const countSpan = resetRejectedDiv.createEl("span", {
+        text: ` (${rejectedCount} files currently rejected)`
+      });
+      countSpan.style.marginLeft = "10px";
+      countSpan.style.color = "var(--text-muted)";
+      countSpan.style.fontSize = "0.9em";
+    }
     containerEl.createEl("h3", { text: "Usage" });
     const infoDiv = containerEl.createDiv();
     infoDiv.innerHTML = `
@@ -169,6 +195,45 @@ var AutoTitleSettingTab = class extends import_obsidian.PluginSettingTab {
         <li>Confirm or reject the suggested title</li>
       </ul>
     `;
+    containerEl.createEl("h3", { text: "Support the Developer" });
+    const supportDiv = containerEl.createDiv();
+    supportDiv.style.display = "flex";
+    supportDiv.style.gap = "15px";
+    supportDiv.style.alignItems = "center";
+    supportDiv.style.marginTop = "10px";
+    const githubLink = supportDiv.createEl("a", {
+      text: "\u2B50 GitHub",
+      href: "https://github.com/zaharenok"
+    });
+    githubLink.style.textDecoration = "none";
+    githubLink.style.padding = "8px 16px";
+    githubLink.style.backgroundColor = "var(--interactive-accent)";
+    githubLink.style.color = "var(--text-on-accent)";
+    githubLink.style.borderRadius = "4px";
+    githubLink.style.fontWeight = "bold";
+    githubLink.style.whiteSpace = "nowrap";
+    githubLink.style.display = "inline-block";
+    githubLink.style.minWidth = "fit-content";
+    githubLink.setAttribute("target", "_blank");
+    const coffeeLink = supportDiv.createEl("a", {
+      text: "\u2615 Buy Me a Coffee",
+      href: "https://buymeacoffee.com/olegzakhark"
+    });
+    coffeeLink.style.textDecoration = "none";
+    coffeeLink.style.padding = "8px 16px";
+    coffeeLink.style.backgroundColor = "#FFDD00";
+    coffeeLink.style.color = "#000";
+    coffeeLink.style.borderRadius = "4px";
+    coffeeLink.style.fontWeight = "bold";
+    coffeeLink.style.whiteSpace = "nowrap";
+    coffeeLink.style.display = "inline-block";
+    coffeeLink.style.minWidth = "fit-content";
+    coffeeLink.setAttribute("target", "_blank");
+    const supportText = supportDiv.createEl("span", {
+      text: "If you find this plugin helpful, please consider supporting its development!"
+    });
+    supportText.style.fontSize = "0.9em";
+    supportText.style.color = "var(--text-muted)";
   }
 };
 
@@ -521,10 +586,14 @@ function detectLanguage(text) {
   };
   return languageMap[detected] || "\u0430\u043D\u0433\u043B\u0438\u0439\u0441\u043A\u0438\u0439";
 }
-function cleanContent(content) {
-  return content.replace(/#{1,6}\s/g, "").replace(/\*\*(.*?)\*\*/g, "$1").replace(/\*(.*?)\*/g, "$1").replace(/`(.*?)`/g, "$1").replace(/\[(.*?)\]\(.*?\)/g, "$1").replace(/!\[.*?\]\(.*?\)/g, "").replace(/^\s*[-*+]\s/gm, "").replace(/^\s*\d+\.\s/gm, "").replace(/\n{3,}/g, "\n\n").trim();
+function cleanContent(content, includeExistingTitle = false) {
+  let cleanedContent = content;
+  if (!includeExistingTitle) {
+    cleanedContent = cleanedContent.replace(/#{1,6}\s/g, "");
+  }
+  return cleanedContent.replace(/\*\*(.*?)\*\*/g, "$1").replace(/\*(.*?)\*/g, "$1").replace(/`(.*?)`/g, "$1").replace(/\[(.*?)\]\(.*?\)/g, "$1").replace(/!\[.*?\]\(.*?\)/g, "").replace(/^\s*[-*+]\s/gm, "").replace(/^\s*\d+\.\s/gm, "").replace(/\n{3,}/g, "\n\n").trim();
 }
-async function generateTitle(content, apiKey, model, temperature, language) {
+async function generateTitle(content, apiKey, model, temperature, language, includeExistingTitle = false) {
   var _a, _b, _c, _d;
   if (!apiKey) {
     throw new Error("API \u043A\u043B\u044E\u0447 OpenAI \u043D\u0435 \u043D\u0430\u0441\u0442\u0440\u043E\u0435\u043D");
@@ -532,9 +601,15 @@ async function generateTitle(content, apiKey, model, temperature, language) {
   if (!content || content.trim().length < 10) {
     throw new Error("\u041D\u0435\u0434\u043E\u0441\u0442\u0430\u0442\u043E\u0447\u043D\u043E \u0441\u043E\u0434\u0435\u0440\u0436\u0438\u043C\u043E\u0433\u043E \u0434\u043B\u044F \u0433\u0435\u043D\u0435\u0440\u0430\u0446\u0438\u0438 \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043A\u0430");
   }
-  const cleanedContent = cleanContent(content);
+  const cleanedContent = cleanContent(content, includeExistingTitle);
   const detectedLang = language === "auto" ? detectLanguage(cleanedContent) : language;
-  const prompt = `\u0421\u0433\u0435\u043D\u0435\u0440\u0438\u0440\u0443\u0439 \u043A\u0440\u0430\u0442\u043A\u0438\u0439 \u0438 \u0441\u043E\u0434\u0435\u0440\u0436\u0430\u0442\u0435\u043B\u044C\u043D\u044B\u0439 \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043E\u043A \u0434\u043B\u044F \u0441\u043B\u0435\u0434\u0443\u044E\u0449\u0435\u0433\u043E \u0442\u0435\u043A\u0441\u0442\u0430 \u043D\u0430 \u044F\u0437\u044B\u043A\u0435 "${detectedLang}". \u0417\u0430\u0433\u043E\u043B\u043E\u0432\u043E\u043A \u0434\u043E\u043B\u0436\u0435\u043D \u0431\u044B\u0442\u044C \u043C\u0430\u043A\u0441\u0438\u043C\u0430\u043B\u044C\u043D\u043E \u0438\u043D\u0444\u043E\u0440\u043C\u0430\u0442\u0438\u0432\u043D\u044B\u043C \u0438 \u043E\u0442\u0440\u0430\u0436\u0430\u0442\u044C \u043E\u0441\u043D\u043E\u0432\u043D\u0443\u044E \u0442\u0435\u043C\u0443 \u0441\u043E\u0434\u0435\u0440\u0436\u0438\u043C\u043E\u0433\u043E. \u0412\u0435\u0440\u043D\u0438 \u0442\u043E\u043B\u044C\u043A\u043E \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043E\u043A, \u0431\u0435\u0437 \u0434\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u0435\u043B\u044C\u043D\u044B\u0445 \u043E\u0431\u044A\u044F\u0441\u043D\u0435\u043D\u0438\u0439:
+  let prompt = `\u0421\u0433\u0435\u043D\u0435\u0440\u0438\u0440\u0443\u0439 \u043A\u0440\u0430\u0442\u043A\u0438\u0439 \u0438 \u0441\u043E\u0434\u0435\u0440\u0436\u0430\u0442\u0435\u043B\u044C\u043D\u044B\u0439 \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043E\u043A \u0434\u043B\u044F \u0441\u043B\u0435\u0434\u0443\u044E\u0449\u0435\u0433\u043E \u0442\u0435\u043A\u0441\u0442\u0430 \u043D\u0430 \u044F\u0437\u044B\u043A\u0435 "${detectedLang}". \u0417\u0430\u0433\u043E\u043B\u043E\u0432\u043E\u043A \u0434\u043E\u043B\u0436\u0435\u043D \u0431\u044B\u0442\u044C \u043C\u0430\u043A\u0441\u0438\u043C\u0430\u043B\u044C\u043D\u043E \u0438\u043D\u0444\u043E\u0440\u043C\u0430\u0442\u0438\u0432\u043D\u044B\u043C \u0438 \u043E\u0442\u0440\u0430\u0436\u0430\u0442\u044C \u043E\u0441\u043D\u043E\u0432\u043D\u0443\u044E \u0442\u0435\u043C\u0443 \u0441\u043E\u0434\u0435\u0440\u0436\u0438\u043C\u043E\u0433\u043E.`;
+  if (includeExistingTitle) {
+    prompt += ` \u0423\u0447\u0442\u0438 \u0441\u0443\u0449\u0435\u0441\u0442\u0432\u0443\u044E\u0449\u0438\u0439 \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043E\u043A \u0432 \u0442\u0435\u043A\u0441\u0442\u0435, \u043D\u043E \u0441\u043E\u0437\u0434\u0430\u0439 \u0431\u043E\u043B\u0435\u0435 \u043F\u043E\u0434\u0445\u043E\u0434\u044F\u0449\u0438\u0439 \u0432\u0430\u0440\u0438\u0430\u043D\u0442.`;
+  } else {
+    prompt += ` \u0418\u0433\u043D\u043E\u0440\u0438\u0440\u0443\u0439 \u043B\u044E\u0431\u044B\u0435 \u0441\u0443\u0449\u0435\u0441\u0442\u0432\u0443\u044E\u0449\u0438\u0435 \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043A\u0438 \u0438 \u0441\u043E\u0441\u0440\u0435\u0434\u043E\u0442\u043E\u0447\u044C\u0441\u044F \u0442\u043E\u043B\u044C\u043A\u043E \u043D\u0430 \u0441\u043E\u0434\u0435\u0440\u0436\u0430\u043D\u0438\u0438.`;
+  }
+  prompt += ` \u0412\u0435\u0440\u043D\u0438 \u0442\u043E\u043B\u044C\u043A\u043E \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043E\u043A, \u0431\u0435\u0437 \u0434\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u0435\u043B\u044C\u043D\u044B\u0445 \u043E\u0431\u044A\u044F\u0441\u043D\u0435\u043D\u0438\u0439:
 
 ${cleanedContent.substring(0, 2e3)}`;
   try {
@@ -978,6 +1053,9 @@ var AutoTitlePlugin = class extends import_obsidian4.Plugin {
     this.typingTimer = null;
     this.isGenerating = false;
     this.generatedCountForFile = /* @__PURE__ */ new Map();
+    this.rejectedFiles = /* @__PURE__ */ new Set();
+    this.temporaryRejectedFiles = /* @__PURE__ */ new Map();
+    // filepath -> timestamp
     this.statusBarItem = null;
     this.indicatorTimer = null;
   }
@@ -1035,6 +1113,15 @@ var AutoTitlePlugin = class extends import_obsidian4.Plugin {
       name: "Fix duplicate title in current note",
       editorCallback: (editor, view) => {
         this.fixCurrentNoteTitle(view);
+      }
+    });
+    this.addCommand({
+      id: "reset-rejected-files",
+      name: "Reset rejected files (allow auto-generation again)",
+      callback: () => {
+        this.rejectedFiles.clear();
+        this.temporaryRejectedFiles.clear();
+        showNotice("\u0421\u043F\u0438\u0441\u043E\u043A \u043E\u0442\u043A\u043B\u043E\u043D\u0435\u043D\u043D\u044B\u0445 \u0444\u0430\u0439\u043B\u043E\u0432 \u043E\u0447\u0438\u0449\u0435\u043D. \u0410\u0432\u0442\u043E\u0433\u0435\u043D\u0435\u0440\u0430\u0446\u0438\u044F \u0441\u043D\u043E\u0432\u0430 \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u0430 \u0434\u043B\u044F \u0432\u0441\u0435\u0445 \u0437\u0430\u043C\u0435\u0442\u043E\u043A.");
       }
     });
     this.addSettingTab(new AutoTitleSettingTab(this.app, this));
@@ -1106,6 +1193,9 @@ var AutoTitlePlugin = class extends import_obsidian4.Plugin {
     }
     const file = view == null ? void 0 : view.file;
     if (file) {
+      if (!this.canShowSuggestionForFile(file.path)) {
+        return;
+      }
       const currentCount = this.generatedCountForFile.get(file.path) || 0;
       if (currentCount >= this.settings.generationCount) {
         return;
@@ -1157,7 +1247,11 @@ var AutoTitlePlugin = class extends import_obsidian4.Plugin {
     }
     const file = view == null ? void 0 : view.file;
     if (file) {
+<<<<<<< HEAD
       if (this.settings.ignoredFiles.includes(file.path)) {
+=======
+      if (!this.canShowSuggestionForFile(file.path)) {
+>>>>>>> d77cca031e93f78ce2efde0b837f47e2ea1286b8
         return;
       }
       const currentCount = this.generatedCountForFile.get(file.path) || 0;
@@ -1173,7 +1267,8 @@ var AutoTitlePlugin = class extends import_obsidian4.Plugin {
         this.settings.apiKey,
         this.settings.model,
         this.settings.temperature,
-        this.settings.language
+        this.settings.language,
+        this.settings.includeExistingTitle
       );
       if (this.settings.replaceMode || this.settings.autoReplaceMode) {
         await this.replaceTitle(editor, suggestedTitle, view);
@@ -1211,8 +1306,9 @@ var AutoTitlePlugin = class extends import_obsidian4.Plugin {
     const notice = new import_obsidian4.Notice("", 5e3);
     const noticeEl = notice.noticeEl;
     noticeEl.innerHTML = "";
-    const text = noticeEl.createEl("span", { text: "\u0413\u043E\u0442\u043E\u0432 \u0441\u0433\u0435\u043D\u0435\u0440\u0438\u0440\u043E\u0432\u0430\u0442\u044C \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043E\u043A. " });
-    const generateButton = noticeEl.createEl("button", { text: "\u0421\u0433\u0435\u043D\u0435\u0440\u0438\u0440\u043E\u0432\u0430\u0442\u044C" });
+    const texts = this.getLocalizedTexts();
+    const text = noticeEl.createEl("span", { text: texts.readyToGenerate });
+    const generateButton = noticeEl.createEl("button", { text: texts.generate });
     generateButton.style.marginLeft = "10px";
     generateButton.style.backgroundColor = "var(--interactive-accent)";
     generateButton.style.color = "var(--text-on-accent)";
@@ -1220,14 +1316,20 @@ var AutoTitlePlugin = class extends import_obsidian4.Plugin {
     generateButton.style.padding = "4px 8px";
     generateButton.style.borderRadius = "3px";
     generateButton.style.cursor = "pointer";
+    generateButton.style.whiteSpace = "nowrap";
     generateButton.onclick = () => {
       notice.hide();
       this.autoGenerateTitle(editor, view);
     };
-    const cancelButton = noticeEl.createEl("button", { text: "\u041E\u0442\u043C\u0435\u043D\u0430" });
+    const cancelButton = noticeEl.createEl("button", { text: texts.cancel });
     cancelButton.style.marginLeft = "5px";
+    cancelButton.style.whiteSpace = "nowrap";
     cancelButton.onclick = () => {
       notice.hide();
+      const file = view == null ? void 0 : view.file;
+      if (file) {
+        this.addTemporaryRejection(file.path);
+      }
     };
   }
   async generateTitleForActiveNote() {
@@ -1265,7 +1367,8 @@ var AutoTitlePlugin = class extends import_obsidian4.Plugin {
         this.settings.apiKey,
         this.settings.model,
         this.settings.temperature,
-        this.settings.language
+        this.settings.language,
+        this.settings.includeExistingTitle
       );
       this.showTitleSuggestionModal(editor, view, suggestedTitle);
     } catch (error) {
@@ -1297,7 +1400,8 @@ var AutoTitlePlugin = class extends import_obsidian4.Plugin {
         this.settings.apiKey,
         this.settings.model,
         this.settings.temperature,
-        this.settings.language
+        this.settings.language,
+        this.settings.includeExistingTitle
       );
       new TitleSuggestionModal(this.app, suggestedTitle, async (accepted, editedTitle) => {
         if (accepted) {
@@ -1323,12 +1427,12 @@ var AutoTitlePlugin = class extends import_obsidian4.Plugin {
     }
   }
   showTitleSuggestionModal(editor, view, suggestedTitle) {
-    new TitleSuggestionModal(this.app, suggestedTitle, async (accepted, editedTitle) => {
+    new TitleSuggestionModal(this.app, suggestedTitle, async (accepted, editedTitle, rejectType) => {
+      const file = view == null ? void 0 : view.file;
       if (accepted) {
         const finalTitle = editedTitle || suggestedTitle;
         await this.replaceTitle(editor, finalTitle, view);
         showNotice(`\u0417\u0430\u0433\u043E\u043B\u043E\u0432\u043E\u043A \u043E\u0431\u043D\u043E\u0432\u043B\u0435\u043D: "${finalTitle}"`);
-        const file = view == null ? void 0 : view.file;
         if (file) {
           const currentCount = this.generatedCountForFile.get(file.path) || 0;
           this.generatedCountForFile.set(file.path, currentCount + 1);
@@ -1337,11 +1441,21 @@ var AutoTitlePlugin = class extends import_obsidian4.Plugin {
           this.renameFile(view.file, finalTitle);
         }
       } else {
+<<<<<<< HEAD
         if (this.settings.autoIgnoreDeclined && view && view.file) {
           if (!this.settings.ignoredFiles.includes(view.file.path)) {
             this.settings.ignoredFiles.push(view.file.path);
             await this.saveSettings();
             showNotice(`\u0417\u0430\u043C\u0435\u0442\u043A\u0430 \u0434\u043E\u0431\u0430\u0432\u043B\u0435\u043D\u0430 \u0432 \u0441\u043F\u0438\u0441\u043E\u043A \u0438\u0433\u043D\u043E\u0440\u0438\u0440\u0443\u0435\u043C\u044B\u0445`);
+=======
+        if (file) {
+          if (rejectType === "permanent") {
+            this.rejectedFiles.add(file.path);
+          } else if (rejectType === "temporary") {
+            this.addTemporaryRejection(file.path);
+          } else {
+            this.addTemporaryRejection(file.path);
+>>>>>>> d77cca031e93f78ce2efde0b837f47e2ea1286b8
           }
         }
       }
@@ -1430,7 +1544,8 @@ var AutoTitlePlugin = class extends import_obsidian4.Plugin {
         this.settings.apiKey,
         this.settings.model,
         this.settings.temperature,
-        this.settings.language
+        this.settings.language,
+        this.settings.includeExistingTitle
       );
       await this.replaceTitle(editor, suggestedTitle, view);
       showNotice(`\u0417\u0430\u0433\u043E\u043B\u043E\u0432\u043E\u043A \u043E\u0431\u043D\u043E\u0432\u043B\u0435\u043D: "${suggestedTitle}"`);
@@ -1528,6 +1643,77 @@ var AutoTitlePlugin = class extends import_obsidian4.Plugin {
       showNotice("\u041D\u0435\u0442 \u0430\u043A\u0442\u0438\u0432\u043D\u043E\u0439 \u0437\u0430\u043C\u0435\u0442\u043A\u0438");
     }
   }
+  /**
+   * Public method to reset rejected files (for settings UI)
+   */
+  resetRejectedFiles() {
+    this.rejectedFiles.clear();
+    this.temporaryRejectedFiles.clear();
+    showNotice("\u0421\u043F\u0438\u0441\u043E\u043A \u043E\u0442\u043A\u043B\u043E\u043D\u0435\u043D\u043D\u044B\u0445 \u0444\u0430\u0439\u043B\u043E\u0432 \u043E\u0447\u0438\u0449\u0435\u043D. \u0410\u0432\u0442\u043E\u0433\u0435\u043D\u0435\u0440\u0430\u0446\u0438\u044F \u0441\u043D\u043E\u0432\u0430 \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u0430 \u0434\u043B\u044F \u0432\u0441\u0435\u0445 \u0437\u0430\u043C\u0435\u0442\u043E\u043A.");
+  }
+  /**
+   * Public method to get rejected files count (for settings UI)
+   */
+  getRejectedFilesCount() {
+    return this.rejectedFiles.size + this.temporaryRejectedFiles.size;
+  }
+  /**
+   * Проверяет, можно ли показать предложение для файла
+   */
+  canShowSuggestionForFile(filePath) {
+    if (this.rejectedFiles.has(filePath)) {
+      return false;
+    }
+    const temporaryRejectTime = this.temporaryRejectedFiles.get(filePath);
+    if (temporaryRejectTime) {
+      const now = Date.now();
+      const fiveMinutes = 5 * 60 * 1e3;
+      if (now - temporaryRejectTime < fiveMinutes) {
+        return false;
+      } else {
+        this.temporaryRejectedFiles.delete(filePath);
+      }
+    }
+    return true;
+  }
+  /**
+   * Добавляет файл в список временно отклоненных
+   */
+  addTemporaryRejection(filePath) {
+    this.temporaryRejectedFiles.set(filePath, Date.now());
+  }
+  /**
+   * Получает локализованные тексты для интерфейса
+   */
+  getLocalizedTexts() {
+    var _a;
+    const isRussian = this.settings.language === "ru" || this.settings.language === "auto" && (navigator.language.startsWith("ru") || ((_a = document.documentElement.lang) == null ? void 0 : _a.startsWith("ru")));
+    if (isRussian) {
+      return {
+        suggestedTitle: "\u041F\u0440\u0435\u0434\u043B\u0430\u0433\u0430\u0435\u043C\u044B\u0439 \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043E\u043A",
+        accept: "\u041F\u0440\u0438\u043D\u044F\u0442\u044C",
+        reject: "\u041E\u0442\u043A\u043B\u043E\u043D\u0438\u0442\u044C",
+        rejectTemporary: "\u041E\u0442\u043A\u043B\u043E\u043D\u0438\u0442\u044C \u043D\u0430 5 \u043C\u0438\u043D",
+        rejectPermanent: "\u041D\u0435 \u043D\u0430\u043F\u043E\u043C\u0438\u043D\u0430\u0442\u044C \u0431\u043E\u043B\u044C\u0448\u0435",
+        regenerate: "\u0421\u0433\u0435\u043D\u0435\u0440\u0438\u0440\u043E\u0432\u0430\u0442\u044C \u0434\u0440\u0443\u0433\u043E\u0439",
+        readyToGenerate: "\u0413\u043E\u0442\u043E\u0432 \u0441\u0433\u0435\u043D\u0435\u0440\u0438\u0440\u043E\u0432\u0430\u0442\u044C \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043E\u043A. ",
+        generate: "\u0421\u0433\u0435\u043D\u0435\u0440\u0438\u0440\u043E\u0432\u0430\u0442\u044C",
+        cancel: "\u041E\u0442\u043C\u0435\u043D\u0430"
+      };
+    } else {
+      return {
+        suggestedTitle: "Suggested Title",
+        accept: "Accept",
+        reject: "Reject",
+        rejectTemporary: "Reject for 5 min",
+        rejectPermanent: "Don't remind again",
+        regenerate: "Generate Another",
+        readyToGenerate: "Ready to generate title. ",
+        generate: "Generate",
+        cancel: "Cancel"
+      };
+    }
+  }
 };
 var TitleSuggestionModal = class extends import_obsidian4.Modal {
   constructor(app, suggestedTitle, onResult, editor, view, plugin) {
@@ -1541,7 +1727,8 @@ var TitleSuggestionModal = class extends import_obsidian4.Modal {
   onOpen() {
     const { contentEl } = this;
     contentEl.empty();
-    contentEl.createEl("h2", { text: "\u041F\u0440\u0435\u0434\u043B\u0430\u0433\u0430\u0435\u043C\u044B\u0439 \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043E\u043A" });
+    const texts = this.plugin.getLocalizedTexts();
+    contentEl.createEl("h2", { text: texts.suggestedTitle });
     const inputContainer = contentEl.createDiv();
     inputContainer.style.margin = "20px 0";
     this.titleInput = inputContainer.createEl("textarea", {
@@ -1560,27 +1747,74 @@ var TitleSuggestionModal = class extends import_obsidian4.Modal {
     this.titleInput.focus();
     const buttonsDiv = contentEl.createDiv({ cls: "modal-button-container" });
     buttonsDiv.style.display = "flex";
-    buttonsDiv.style.gap = "10px";
+    buttonsDiv.style.gap = "8px";
     buttonsDiv.style.justifyContent = "flex-end";
     buttonsDiv.style.marginTop = "20px";
     buttonsDiv.style.flexWrap = "wrap";
-    const regenerateButton = buttonsDiv.createEl("button", { text: "\u0421\u0433\u0435\u043D\u0435\u0440\u0438\u0440\u043E\u0432\u0430\u0442\u044C \u0434\u0440\u0443\u0433\u043E\u0439" });
+    const regenerateButton = buttonsDiv.createEl("button", { text: texts.regenerate });
     regenerateButton.onclick = () => {
       this.regenerateTitle();
     };
-    const acceptButton = buttonsDiv.createEl("button", { text: "\u041F\u0440\u0438\u043D\u044F\u0442\u044C" });
+    const acceptButton = buttonsDiv.createEl("button", { text: texts.accept });
     acceptButton.classList.add("mod-cta");
     acceptButton.onclick = () => {
       this.close();
       this.onResult(true, this.titleInput.value);
     };
-    const rejectButton = buttonsDiv.createEl("button", { text: "\u041E\u0442\u043A\u043B\u043E\u043D\u0438\u0442\u044C" });
-    rejectButton.onclick = () => {
-      this.close();
-      this.onResult(false);
+    const rejectDropdown = buttonsDiv.createEl("div");
+    rejectDropdown.style.position = "relative";
+    rejectDropdown.style.display = "inline-block";
+    const rejectButton = rejectDropdown.createEl("button", { text: texts.reject + " \u25BC" });
+    rejectButton.style.whiteSpace = "nowrap";
+    const dropdownMenu = rejectDropdown.createEl("div");
+    dropdownMenu.style.display = "none";
+    dropdownMenu.style.position = "absolute";
+    dropdownMenu.style.bottom = "100%";
+    dropdownMenu.style.right = "0";
+    dropdownMenu.style.backgroundColor = "var(--background-primary)";
+    dropdownMenu.style.border = "1px solid var(--background-modifier-border)";
+    dropdownMenu.style.borderRadius = "4px";
+    dropdownMenu.style.boxShadow = "0 2px 8px rgba(0,0,0,0.15)";
+    dropdownMenu.style.zIndex = "1000";
+    dropdownMenu.style.minWidth = "180px";
+    const rejectTemporaryOption = dropdownMenu.createEl("div", { text: texts.rejectTemporary });
+    rejectTemporaryOption.style.padding = "8px 12px";
+    rejectTemporaryOption.style.cursor = "pointer";
+    rejectTemporaryOption.style.whiteSpace = "nowrap";
+    rejectTemporaryOption.onmouseenter = () => {
+      rejectTemporaryOption.style.backgroundColor = "var(--background-modifier-hover)";
     };
+    rejectTemporaryOption.onmouseleave = () => {
+      rejectTemporaryOption.style.backgroundColor = "transparent";
+    };
+    rejectTemporaryOption.onclick = () => {
+      this.close();
+      this.onResult(false, void 0, "temporary");
+    };
+    const rejectPermanentOption = dropdownMenu.createEl("div", { text: texts.rejectPermanent });
+    rejectPermanentOption.style.padding = "8px 12px";
+    rejectPermanentOption.style.cursor = "pointer";
+    rejectPermanentOption.style.whiteSpace = "nowrap";
+    rejectPermanentOption.onmouseenter = () => {
+      rejectPermanentOption.style.backgroundColor = "var(--background-modifier-hover)";
+    };
+    rejectPermanentOption.onmouseleave = () => {
+      rejectPermanentOption.style.backgroundColor = "transparent";
+    };
+    rejectPermanentOption.onclick = () => {
+      this.close();
+      this.onResult(false, void 0, "permanent");
+    };
+    rejectButton.onclick = (e) => {
+      e.stopPropagation();
+      const isVisible = dropdownMenu.style.display !== "none";
+      dropdownMenu.style.display = isVisible ? "none" : "block";
+    };
+    document.addEventListener("click", () => {
+      dropdownMenu.style.display = "none";
+    });
     this.titleInput.focus();
-    this.titleInput.select();
+    this.titleInput.setSelectionRange(this.titleInput.value.length, this.titleInput.value.length);
   }
   async regenerateTitle() {
     try {
@@ -1597,13 +1831,14 @@ var TitleSuggestionModal = class extends import_obsidian4.Modal {
         this.plugin.settings.model,
         this.plugin.settings.temperature + 0.2,
         // Увеличиваем температуру для другого стиля
-        this.plugin.settings.language
+        this.plugin.settings.language,
+        this.plugin.settings.includeExistingTitle
       );
       this.suggestedTitle = newTitle;
       this.titleInput.value = newTitle;
       this.titleInput.disabled = false;
       this.titleInput.focus();
-      this.titleInput.select();
+      this.titleInput.setSelectionRange(this.titleInput.value.length, this.titleInput.value.length);
     } catch (error) {
       console.error("\u041E\u0448\u0438\u0431\u043A\u0430 \u043F\u043E\u0432\u0442\u043E\u0440\u043D\u043E\u0439 \u0433\u0435\u043D\u0435\u0440\u0430\u0446\u0438\u0438 \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043A\u0430:", error);
       this.titleInput.value = this.suggestedTitle;
