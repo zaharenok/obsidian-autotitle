@@ -37,7 +37,7 @@ var DEFAULT_SETTINGS = {
   autoTrigger: false,
   language: "auto",
   replaceMode: false,
-  autoReplaceMode: false,
+  autoReplaceMode: true,
   autoIgnoreDeclined: true,
   ignoredFiles: [],
   timeout: 5e3,
@@ -88,7 +88,7 @@ var AutoTitleSettingTab = class extends import_obsidian.PluginSettingTab {
       this.plugin.settings.autoReplaceMode = value;
       await this.plugin.saveSettings();
     }));
-    new import_obsidian.Setting(containerEl).setName("Auto-ignore declined suggestions").setDesc("Automatically add notes to ignore list when title generation is declined").addToggle((toggle) => toggle.setValue(this.plugin.settings.autoIgnoreDeclined).onChange(async (value) => {
+    new import_obsidian.Setting(containerEl).setName("Auto-ignore processed notes").setDesc("Automatically add notes to ignore list after title generation (accepted or declined)").addToggle((toggle) => toggle.setValue(this.plugin.settings.autoIgnoreDeclined).onChange(async (value) => {
       this.plugin.settings.autoIgnoreDeclined = value;
       await this.plugin.saveSettings();
     }));
@@ -123,7 +123,7 @@ var AutoTitleSettingTab = class extends import_obsidian.PluginSettingTab {
         await this.plugin.saveSettings();
       }
     }));
-    new import_obsidian.Setting(containerEl).setName("Maximum Title Length").setDesc("Maximum number of characters for generated titles (titles will be truncated if longer)").addText((text) => text.setPlaceholder("100").setValue(this.plugin.settings.maxTitleLength.toString()).onChange(async (value) => {
+    new import_obsidian.Setting(containerEl).setName("Maximum Title Length").setDesc("Maximum number of characters for generated titles (AI will generate within this limit)").addText((text) => text.setPlaceholder("100").setValue(this.plugin.settings.maxTitleLength.toString()).onChange(async (value) => {
       const length = parseInt(value);
       if (!isNaN(length) && length > 0) {
         this.plugin.settings.maxTitleLength = length;
@@ -593,7 +593,7 @@ function cleanContent(content, includeExistingTitle = false) {
   }
   return cleanedContent.replace(/\*\*(.*?)\*\*/g, "$1").replace(/\*(.*?)\*/g, "$1").replace(/`(.*?)`/g, "$1").replace(/\[(.*?)\]\(.*?\)/g, "$1").replace(/!\[.*?\]\(.*?\)/g, "").replace(/^\s*[-*+]\s/gm, "").replace(/^\s*\d+\.\s/gm, "").replace(/\n{3,}/g, "\n\n").trim();
 }
-async function generateTitle(content, apiKey, model, temperature, language, includeExistingTitle = false) {
+async function generateTitle(content, apiKey, model, temperature, language, includeExistingTitle = false, maxTitleLength = 100) {
   var _a, _b, _c, _d;
   if (!apiKey) {
     throw new Error("API \u043A\u043B\u044E\u0447 OpenAI \u043D\u0435 \u043D\u0430\u0441\u0442\u0440\u043E\u0435\u043D");
@@ -603,13 +603,13 @@ async function generateTitle(content, apiKey, model, temperature, language, incl
   }
   const cleanedContent = cleanContent(content, includeExistingTitle);
   const detectedLang = language === "auto" ? detectLanguage(cleanedContent) : language;
-  let prompt = `\u0421\u0433\u0435\u043D\u0435\u0440\u0438\u0440\u0443\u0439 \u043A\u0440\u0430\u0442\u043A\u0438\u0439 \u0438 \u0441\u043E\u0434\u0435\u0440\u0436\u0430\u0442\u0435\u043B\u044C\u043D\u044B\u0439 \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043E\u043A \u0434\u043B\u044F \u0441\u043B\u0435\u0434\u0443\u044E\u0449\u0435\u0433\u043E \u0442\u0435\u043A\u0441\u0442\u0430 \u043D\u0430 \u044F\u0437\u044B\u043A\u0435 "${detectedLang}". \u0417\u0430\u0433\u043E\u043B\u043E\u0432\u043E\u043A \u0434\u043E\u043B\u0436\u0435\u043D \u0431\u044B\u0442\u044C \u043C\u0430\u043A\u0441\u0438\u043C\u0430\u043B\u044C\u043D\u043E \u0438\u043D\u0444\u043E\u0440\u043C\u0430\u0442\u0438\u0432\u043D\u044B\u043C \u0438 \u043E\u0442\u0440\u0430\u0436\u0430\u0442\u044C \u043E\u0441\u043D\u043E\u0432\u043D\u0443\u044E \u0442\u0435\u043C\u0443 \u0441\u043E\u0434\u0435\u0440\u0436\u0438\u043C\u043E\u0433\u043E.`;
+  let prompt = `Generate a concise and informative title for the following text in "${detectedLang}" language. The title should be maximally informative and reflect the main theme of the content. IMPORTANT: The title must be no longer than ${maxTitleLength} characters.`;
   if (includeExistingTitle) {
-    prompt += ` \u0423\u0447\u0442\u0438 \u0441\u0443\u0449\u0435\u0441\u0442\u0432\u0443\u044E\u0449\u0438\u0439 \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043E\u043A \u0432 \u0442\u0435\u043A\u0441\u0442\u0435, \u043D\u043E \u0441\u043E\u0437\u0434\u0430\u0439 \u0431\u043E\u043B\u0435\u0435 \u043F\u043E\u0434\u0445\u043E\u0434\u044F\u0449\u0438\u0439 \u0432\u0430\u0440\u0438\u0430\u043D\u0442.`;
+    prompt += ` Consider the existing title in the text, but create a more suitable variant.`;
   } else {
-    prompt += ` \u0418\u0433\u043D\u043E\u0440\u0438\u0440\u0443\u0439 \u043B\u044E\u0431\u044B\u0435 \u0441\u0443\u0449\u0435\u0441\u0442\u0432\u0443\u044E\u0449\u0438\u0435 \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043A\u0438 \u0438 \u0441\u043E\u0441\u0440\u0435\u0434\u043E\u0442\u043E\u0447\u044C\u0441\u044F \u0442\u043E\u043B\u044C\u043A\u043E \u043D\u0430 \u0441\u043E\u0434\u0435\u0440\u0436\u0430\u043D\u0438\u0438.`;
+    prompt += ` Ignore any existing headings and focus only on the content.`;
   }
-  prompt += ` \u0412\u0435\u0440\u043D\u0438 \u0442\u043E\u043B\u044C\u043A\u043E \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043E\u043A, \u0431\u0435\u0437 \u0434\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u0435\u043B\u044C\u043D\u044B\u0445 \u043E\u0431\u044A\u044F\u0441\u043D\u0435\u043D\u0438\u0439:
+  prompt += ` Return only the title, without additional explanations:
 
 ${cleanedContent.substring(0, 2e3)}`;
   try {
@@ -628,7 +628,7 @@ ${cleanedContent.substring(0, 2e3)}`;
           }
         ],
         temperature,
-        max_tokens: 60
+        max_tokens: 150
       })
     });
     if (!response.ok) {
@@ -739,30 +739,17 @@ var ContentProcessor = class {
     return line.replace(/^#+\s*/, "").trim();
   }
   /**
-   * Валидирует и обрезает заголовок до максимальной длины
-   * @param title - исходный заголовок
-   * @param maxLength - максимальная длина (по умолчанию 100)
-   * @returns обрезанный заголовок
+   * Validates title (AI now generates proper length, no truncation needed)
+   * @param title - source title
+   * @param maxLength - maximum length (kept for compatibility)
+   * @returns clean title without truncation
    */
   validateAndTruncateTitle(title, maxLength = 100) {
     if (!title) {
       return "";
     }
-    const cleanTitle = title.trim();
-    if (cleanTitle.length <= maxLength) {
-      return cleanTitle;
-    }
-    const words = cleanTitle.split(" ");
-    let truncated = "";
-    for (const word of words) {
-      const testLength = truncated ? truncated.length + 1 + word.length : word.length;
-      if (testLength <= maxLength - 3) {
-        truncated = truncated ? `${truncated} ${word}` : word;
-      } else {
-        break;
-      }
-    }
-    return truncated ? `${truncated}...` : cleanTitle.substring(0, maxLength - 3) + "...";
+    // AI now generates proper length titles, no truncation needed
+    return title.trim();
   }
 };
 
@@ -913,7 +900,7 @@ var TitleManager = class {
    * @returns очищенное имя файла
    */
   sanitizeFilename(title) {
-    return title.replace(/[<>:"/\\|?*]/g, "").replace(/\s+/g, " ").trim().substring(0, 100);
+    return title.replace(/[<>:"/\\|?*]/g, "").replace(/\s+/g, " ").trim();
   }
 };
 
@@ -1247,11 +1234,7 @@ var AutoTitlePlugin = class extends import_obsidian4.Plugin {
     }
     const file = view == null ? void 0 : view.file;
     if (file) {
-<<<<<<< HEAD
       if (this.settings.ignoredFiles.includes(file.path)) {
-=======
-      if (!this.canShowSuggestionForFile(file.path)) {
->>>>>>> d77cca031e93f78ce2efde0b837f47e2ea1286b8
         return;
       }
       const currentCount = this.generatedCountForFile.get(file.path) || 0;
@@ -1268,20 +1251,25 @@ var AutoTitlePlugin = class extends import_obsidian4.Plugin {
         this.settings.model,
         this.settings.temperature,
         this.settings.language,
-        this.settings.includeExistingTitle
+        this.settings.includeExistingTitle,
+        this.settings.maxTitleLength
       );
-      if (this.settings.replaceMode || this.settings.autoReplaceMode) {
-        await this.replaceTitle(editor, suggestedTitle, view);
-        showNotice(`\u0417\u0430\u0433\u043E\u043B\u043E\u0432\u043E\u043A \u043E\u0431\u043D\u043E\u0432\u043B\u0435\u043D: "${suggestedTitle}"`);
-        if (file) {
-          const currentCount = this.generatedCountForFile.get(file.path) || 0;
-          this.generatedCountForFile.set(file.path, currentCount + 1);
+      // For auto-generation, always replace without dialog
+      console.log(`AutoTitle DEBUG: Generated title length: ${suggestedTitle.length}, maxLength: ${this.settings.maxTitleLength}, title: "${suggestedTitle}"`);
+      await this.replaceTitle(editor, suggestedTitle, view);
+      showNotice(`Title updated: "${suggestedTitle}"`);
+      if (file) {
+        const currentCount = this.generatedCountForFile.get(file.path) || 0;
+        this.generatedCountForFile.set(file.path, currentCount + 1);
+        
+        // Add to ignore list after successful generation
+        if (this.settings.autoIgnoreDeclined && !this.settings.ignoredFiles.includes(file.path)) {
+          this.settings.ignoredFiles.push(file.path);
+          await this.saveSettings();
         }
-      } else {
-        this.showTitleSuggestionModal(editor, view, suggestedTitle);
       }
     } catch (error) {
-      console.error("\u041E\u0448\u0438\u0431\u043A\u0430 \u0430\u0432\u0442\u043E\u0433\u0435\u043D\u0435\u0440\u0430\u0446\u0438\u0438 \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043A\u0430:", error);
+      console.error("Auto-generation error:", error);
     } finally {
       this.isGenerating = false;
     }
@@ -1289,9 +1277,9 @@ var AutoTitlePlugin = class extends import_obsidian4.Plugin {
   showGenerationIndicator() {
     if (!this.settings.showIndicator)
       return;
-    const notice = new import_obsidian4.Notice("\u0413\u0435\u043D\u0435\u0440\u0430\u0446\u0438\u044F \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043A\u0430 \u0447\u0435\u0440\u0435\u0437 1 \u0441\u0435\u043A\u0443\u043D\u0434\u0443...", 2e3);
+    const notice = new import_obsidian4.Notice("Title generation in 1 second...", 2e3);
     const noticeEl = notice.noticeEl;
-    const cancelButton = noticeEl.createEl("button", { text: "\u041E\u0442\u043C\u0435\u043D\u0430" });
+    const cancelButton = noticeEl.createEl("button", { text: "Cancel" });
     cancelButton.style.marginLeft = "10px";
     cancelButton.onclick = () => {
       if (this.typingTimer) {
@@ -1335,7 +1323,7 @@ var AutoTitlePlugin = class extends import_obsidian4.Plugin {
   async generateTitleForActiveNote() {
     const activeView = this.app.workspace.getActiveViewOfType(import_obsidian4.MarkdownView);
     if (!activeView) {
-      showNotice("\u041E\u0442\u043A\u0440\u043E\u0439\u0442\u0435 \u0437\u0430\u043C\u0435\u0442\u043A\u0443 \u0434\u043B\u044F \u0433\u0435\u043D\u0435\u0440\u0430\u0446\u0438\u0438 \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043A\u0430");
+      showNotice("Please open a note to generate a title");
       return;
     }
     const editor = activeView.editor;
@@ -1343,85 +1331,124 @@ var AutoTitlePlugin = class extends import_obsidian4.Plugin {
   }
   async generateTitleForEditor(editor, view) {
     if (this.isGenerating) {
-      showNotice("\u0413\u0435\u043D\u0435\u0440\u0430\u0446\u0438\u044F \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043A\u0430 \u0443\u0436\u0435 \u0432\u044B\u043F\u043E\u043B\u043D\u044F\u0435\u0442\u0441\u044F...");
+      showNotice("Title generation already in progress...");
       return;
     }
     if (view && view.file && this.settings.ignoredFiles.includes(view.file.path)) {
-      showNotice("\u0414\u0430\u043D\u043D\u0430\u044F \u0437\u0430\u043C\u0435\u0442\u043A\u0430 \u043D\u0430\u0445\u043E\u0434\u0438\u0442\u0441\u044F \u0432 \u0441\u043F\u0438\u0441\u043A\u0435 \u0438\u0433\u043D\u043E\u0440\u0438\u0440\u0443\u0435\u043C\u044B\u0445");
+      showNotice("This note is in the ignore list");
       return;
     }
     const content = editor.getValue();
     if (!content || content.trim().length < 10) {
-      showNotice("\u041D\u0435\u0434\u043E\u0441\u0442\u0430\u0442\u043E\u0447\u043D\u043E \u0441\u043E\u0434\u0435\u0440\u0436\u0438\u043C\u043E\u0433\u043E \u0434\u043B\u044F \u0433\u0435\u043D\u0435\u0440\u0430\u0446\u0438\u0438 \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043A\u0430");
+      showNotice("Insufficient content to generate a title");
       return;
     }
     if (!this.settings.apiKey) {
-      showNotice("\u041D\u0430\u0441\u0442\u0440\u043E\u0439\u0442\u0435 API \u043A\u043B\u044E\u0447 OpenAI \u0432 \u043D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0430\u0445 \u043F\u043B\u0430\u0433\u0438\u043D\u0430");
+      showNotice("Please set up your OpenAI API key in plugin settings");
       return;
     }
     try {
       this.isGenerating = true;
-      showNotice("\u0413\u0435\u043D\u0435\u0440\u0438\u0440\u0443\u044E \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043E\u043A...", 2e3);
+      showNotice("Generating title...", 2e3);
       const suggestedTitle = await generateTitle(
         content,
         this.settings.apiKey,
         this.settings.model,
         this.settings.temperature,
         this.settings.language,
-        this.settings.includeExistingTitle
+        this.settings.includeExistingTitle,
+        this.settings.maxTitleLength
       );
-      this.showTitleSuggestionModal(editor, view, suggestedTitle);
+      if (this.settings.autoReplaceMode) {
+        await this.replaceTitle(editor, suggestedTitle, view);
+        showNotice(`Title updated: "${suggestedTitle}"`);
+        const file = view == null ? void 0 : view.file;
+        if (file) {
+          const currentCount = this.generatedCountForFile.get(file.path) || 0;
+          this.generatedCountForFile.set(file.path, currentCount + 1);
+          
+          // Add to ignore list after successful generation
+          if (this.settings.autoIgnoreDeclined && !this.settings.ignoredFiles.includes(file.path)) {
+            this.settings.ignoredFiles.push(file.path);
+            await this.saveSettings();
+          }
+        }
+        if (view.file) {
+          this.renameFile(view.file, suggestedTitle);
+        }
+      } else {
+        this.showTitleSuggestionModal(editor, view, suggestedTitle);
+      }
     } catch (error) {
       console.error("\u041E\u0448\u0438\u0431\u043A\u0430 \u0433\u0435\u043D\u0435\u0440\u0430\u0446\u0438\u0438 \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043A\u0430:", error);
-      showNotice(`\u041E\u0448\u0438\u0431\u043A\u0430: ${error.message}`);
+      showNotice(`Error: ${error.message}`);
     } finally {
       this.isGenerating = false;
     }
   }
   async generateTitleForFile(file) {
     if (this.settings.ignoredFiles.includes(file.path)) {
-      showNotice("\u0414\u0430\u043D\u043D\u0430\u044F \u0437\u0430\u043C\u0435\u0442\u043A\u0430 \u043D\u0430\u0445\u043E\u0434\u0438\u0442\u0441\u044F \u0432 \u0441\u043F\u0438\u0441\u043A\u0435 \u0438\u0433\u043D\u043E\u0440\u0438\u0440\u0443\u0435\u043C\u044B\u0445");
+      showNotice("This note is in the ignore list");
       return;
     }
     const content = await this.app.vault.read(file);
     if (!content || content.trim().length < 10) {
-      showNotice("\u041D\u0435\u0434\u043E\u0441\u0442\u0430\u0442\u043E\u0447\u043D\u043E \u0441\u043E\u0434\u0435\u0440\u0436\u0438\u043C\u043E\u0433\u043E \u0434\u043B\u044F \u0433\u0435\u043D\u0435\u0440\u0430\u0446\u0438\u0438 \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043A\u0430");
+      showNotice("Insufficient content to generate a title");
       return;
     }
     if (!this.settings.apiKey) {
-      showNotice("\u041D\u0430\u0441\u0442\u0440\u043E\u0439\u0442\u0435 API \u043A\u043B\u044E\u0447 OpenAI \u0432 \u043D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0430\u0445 \u043F\u043B\u0430\u0433\u0438\u043D\u0430");
+      showNotice("Please set up your OpenAI API key in plugin settings");
       return;
     }
     try {
       this.isGenerating = true;
-      showNotice("\u0413\u0435\u043D\u0435\u0440\u0438\u0440\u0443\u044E \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043E\u043A...", 2e3);
+      showNotice("Generating title...", 2e3);
       const suggestedTitle = await generateTitle(
         content,
         this.settings.apiKey,
         this.settings.model,
         this.settings.temperature,
         this.settings.language,
-        this.settings.includeExistingTitle
+        this.settings.includeExistingTitle,
+        this.settings.maxTitleLength
       );
-      new TitleSuggestionModal(this.app, suggestedTitle, async (accepted, editedTitle) => {
-        if (accepted) {
-          const finalTitle = editedTitle || suggestedTitle;
-          const updatedContent = this.insertTitleIntoContent(content, finalTitle);
-          await this.app.vault.modify(file, updatedContent);
-          showNotice(`\u0417\u0430\u0433\u043E\u043B\u043E\u0432\u043E\u043A \u0434\u043E\u0431\u0430\u0432\u043B\u0435\u043D \u0432 \u0444\u0430\u0439\u043B: "${finalTitle}"`);
-        } else {
-          if (this.settings.autoIgnoreDeclined && file) {
-            if (!this.settings.ignoredFiles.includes(file.path)) {
+      if (this.settings.autoReplaceMode) {
+        const updatedContent = this.insertTitleIntoContent(content, suggestedTitle);
+        await this.app.vault.modify(file, updatedContent);
+        showNotice(`Title added to file: "${suggestedTitle}"`);
+        
+        // Add to ignore list after successful generation
+        if (this.settings.autoIgnoreDeclined && !this.settings.ignoredFiles.includes(file.path)) {
+          this.settings.ignoredFiles.push(file.path);
+          await this.saveSettings();
+        }
+      } else {
+        new TitleSuggestionModal(this.app, suggestedTitle, async (accepted, editedTitle) => {
+          if (accepted) {
+            const finalTitle = editedTitle || suggestedTitle;
+            const updatedContent = this.insertTitleIntoContent(content, finalTitle);
+            await this.app.vault.modify(file, updatedContent);
+            showNotice(`Title added to file: "${finalTitle}"`);
+            
+            // Add to ignore list after successful generation
+            if (this.settings.autoIgnoreDeclined && !this.settings.ignoredFiles.includes(file.path)) {
               this.settings.ignoredFiles.push(file.path);
               await this.saveSettings();
-              showNotice(`\u0417\u0430\u043C\u0435\u0442\u043A\u0430 \u0434\u043E\u0431\u0430\u0432\u043B\u0435\u043D\u0430 \u0432 \u0441\u043F\u0438\u0441\u043E\u043A \u0438\u0433\u043D\u043E\u0440\u0438\u0440\u0443\u0435\u043C\u044B\u0445`);
+            }
+          } else {
+            if (this.settings.autoIgnoreDeclined && file) {
+              if (!this.settings.ignoredFiles.includes(file.path)) {
+                this.settings.ignoredFiles.push(file.path);
+                await this.saveSettings();
+                showNotice(`Note added to ignore list`);
+              }
             }
           }
-        }
-      }, null, null, this).open();
+        }, null, null, this).open();
+      }
     } catch (error) {
       console.error("\u041E\u0448\u0438\u0431\u043A\u0430 \u0433\u0435\u043D\u0435\u0440\u0430\u0446\u0438\u0438 \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043A\u0430:", error);
-      showNotice(`\u041E\u0448\u0438\u0431\u043A\u0430: ${error.message}`);
+      showNotice(`Error: ${error.message}`);
     } finally {
       this.isGenerating = false;
     }
@@ -1432,30 +1459,26 @@ var AutoTitlePlugin = class extends import_obsidian4.Plugin {
       if (accepted) {
         const finalTitle = editedTitle || suggestedTitle;
         await this.replaceTitle(editor, finalTitle, view);
-        showNotice(`\u0417\u0430\u0433\u043E\u043B\u043E\u0432\u043E\u043A \u043E\u0431\u043D\u043E\u0432\u043B\u0435\u043D: "${finalTitle}"`);
+        showNotice(`Title updated: "${finalTitle}"`);
         if (file) {
           const currentCount = this.generatedCountForFile.get(file.path) || 0;
           this.generatedCountForFile.set(file.path, currentCount + 1);
+          
+          // Add to ignore list after successful generation
+          if (this.settings.autoIgnoreDeclined && !this.settings.ignoredFiles.includes(file.path)) {
+            this.settings.ignoredFiles.push(file.path);
+            await this.saveSettings();
+          }
         }
         if (view.file) {
           this.renameFile(view.file, finalTitle);
         }
       } else {
-<<<<<<< HEAD
         if (this.settings.autoIgnoreDeclined && view && view.file) {
           if (!this.settings.ignoredFiles.includes(view.file.path)) {
             this.settings.ignoredFiles.push(view.file.path);
             await this.saveSettings();
-            showNotice(`\u0417\u0430\u043C\u0435\u0442\u043A\u0430 \u0434\u043E\u0431\u0430\u0432\u043B\u0435\u043D\u0430 \u0432 \u0441\u043F\u0438\u0441\u043E\u043A \u0438\u0433\u043D\u043E\u0440\u0438\u0440\u0443\u0435\u043C\u044B\u0445`);
-=======
-        if (file) {
-          if (rejectType === "permanent") {
-            this.rejectedFiles.add(file.path);
-          } else if (rejectType === "temporary") {
-            this.addTemporaryRejection(file.path);
-          } else {
-            this.addTemporaryRejection(file.path);
->>>>>>> d77cca031e93f78ce2efde0b837f47e2ea1286b8
+            showNotice("Note added to ignore list");
           }
         }
       }
@@ -1505,7 +1528,7 @@ var AutoTitlePlugin = class extends import_obsidian4.Plugin {
   }
   async renameFile(file, newTitle) {
     try {
-      const sanitizedTitle = newTitle.replace(/[<>:"/\\|?*]/g, "").replace(/\s+/g, " ").trim().substring(0, 100);
+      const sanitizedTitle = newTitle.replace(/[<>:"/\\|?*]/g, "").replace(/\s+/g, " ").trim();
       if (sanitizedTitle && sanitizedTitle !== file.basename) {
         const newPath = file.path.replace(file.name, `${sanitizedTitle}.md`);
         const existingFile = this.app.vault.getAbstractFileByPath(newPath);
@@ -1520,32 +1543,33 @@ var AutoTitlePlugin = class extends import_obsidian4.Plugin {
   }
   async generateTitleDirect(editor, view) {
     if (this.isGenerating) {
-      showNotice("\u0413\u0435\u043D\u0435\u0440\u0430\u0446\u0438\u044F \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043A\u0430 \u0443\u0436\u0435 \u0432\u044B\u043F\u043E\u043B\u043D\u044F\u0435\u0442\u0441\u044F...");
+      showNotice("Title generation already in progress...");
       return;
     }
     if (view && view.file && this.settings.ignoredFiles.includes(view.file.path)) {
-      showNotice("\u0414\u0430\u043D\u043D\u0430\u044F \u0437\u0430\u043C\u0435\u0442\u043A\u0430 \u043D\u0430\u0445\u043E\u0434\u0438\u0442\u0441\u044F \u0432 \u0441\u043F\u0438\u0441\u043A\u0435 \u0438\u0433\u043D\u043E\u0440\u0438\u0440\u0443\u0435\u043C\u044B\u0445");
+      showNotice("This note is in the ignore list");
       return;
     }
     const content = editor.getValue();
     if (!content || content.trim().length < 10) {
-      showNotice("\u041D\u0435\u0434\u043E\u0441\u0442\u0430\u0442\u043E\u0447\u043D\u043E \u0441\u043E\u0434\u0435\u0440\u0436\u0438\u043C\u043E\u0433\u043E \u0434\u043B\u044F \u0433\u0435\u043D\u0435\u0440\u0430\u0446\u0438\u0438 \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043A\u0430");
+      showNotice("Insufficient content to generate a title");
       return;
     }
     if (!this.settings.apiKey) {
-      showNotice("\u041D\u0430\u0441\u0442\u0440\u043E\u0439\u0442\u0435 API \u043A\u043B\u044E\u0447 OpenAI \u0432 \u043D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0430\u0445 \u043F\u043B\u0430\u0433\u0438\u043D\u0430");
+      showNotice("Please set up your OpenAI API key in plugin settings");
       return;
     }
     try {
       this.isGenerating = true;
-      showNotice("\u0413\u0435\u043D\u0435\u0440\u0438\u0440\u0443\u044E \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043E\u043A...", 2e3);
+      showNotice("Generating title...", 2e3);
       const suggestedTitle = await generateTitle(
         content,
         this.settings.apiKey,
         this.settings.model,
         this.settings.temperature,
         this.settings.language,
-        this.settings.includeExistingTitle
+        this.settings.includeExistingTitle,
+        this.settings.maxTitleLength
       );
       await this.replaceTitle(editor, suggestedTitle, view);
       showNotice(`\u0417\u0430\u0433\u043E\u043B\u043E\u0432\u043E\u043A \u043E\u0431\u043D\u043E\u0432\u043B\u0435\u043D: "${suggestedTitle}"`);
@@ -1559,7 +1583,7 @@ var AutoTitlePlugin = class extends import_obsidian4.Plugin {
       }
     } catch (error) {
       console.error("\u041E\u0448\u0438\u0431\u043A\u0430 \u0433\u0435\u043D\u0435\u0440\u0430\u0446\u0438\u0438 \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043A\u0430:", error);
-      showNotice(`\u041E\u0448\u0438\u0431\u043A\u0430: ${error.message}`);
+      showNotice(`Error: ${error.message}`);
     } finally {
       this.isGenerating = false;
     }
@@ -1686,33 +1710,17 @@ var AutoTitlePlugin = class extends import_obsidian4.Plugin {
    * Получает локализованные тексты для интерфейса
    */
   getLocalizedTexts() {
-    var _a;
-    const isRussian = this.settings.language === "ru" || this.settings.language === "auto" && (navigator.language.startsWith("ru") || ((_a = document.documentElement.lang) == null ? void 0 : _a.startsWith("ru")));
-    if (isRussian) {
-      return {
-        suggestedTitle: "\u041F\u0440\u0435\u0434\u043B\u0430\u0433\u0430\u0435\u043C\u044B\u0439 \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043E\u043A",
-        accept: "\u041F\u0440\u0438\u043D\u044F\u0442\u044C",
-        reject: "\u041E\u0442\u043A\u043B\u043E\u043D\u0438\u0442\u044C",
-        rejectTemporary: "\u041E\u0442\u043A\u043B\u043E\u043D\u0438\u0442\u044C \u043D\u0430 5 \u043C\u0438\u043D",
-        rejectPermanent: "\u041D\u0435 \u043D\u0430\u043F\u043E\u043C\u0438\u043D\u0430\u0442\u044C \u0431\u043E\u043B\u044C\u0448\u0435",
-        regenerate: "\u0421\u0433\u0435\u043D\u0435\u0440\u0438\u0440\u043E\u0432\u0430\u0442\u044C \u0434\u0440\u0443\u0433\u043E\u0439",
-        readyToGenerate: "\u0413\u043E\u0442\u043E\u0432 \u0441\u0433\u0435\u043D\u0435\u0440\u0438\u0440\u043E\u0432\u0430\u0442\u044C \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043E\u043A. ",
-        generate: "\u0421\u0433\u0435\u043D\u0435\u0440\u0438\u0440\u043E\u0432\u0430\u0442\u044C",
-        cancel: "\u041E\u0442\u043C\u0435\u043D\u0430"
-      };
-    } else {
-      return {
-        suggestedTitle: "Suggested Title",
-        accept: "Accept",
-        reject: "Reject",
-        rejectTemporary: "Reject for 5 min",
-        rejectPermanent: "Don't remind again",
-        regenerate: "Generate Another",
-        readyToGenerate: "Ready to generate title. ",
-        generate: "Generate",
-        cancel: "Cancel"
-      };
-    }
+    return {
+      suggestedTitle: "Suggested Title",
+      accept: "Accept", 
+      reject: "Reject",
+      rejectTemporary: "Reject for 5 min",
+      rejectPermanent: "Don't remind again",
+      regenerate: "Generate Another",
+      readyToGenerate: "Ready to generate title. ",
+      generate: "Generate",
+      cancel: "Cancel"
+    };
   }
 };
 var TitleSuggestionModal = class extends import_obsidian4.Modal {
@@ -1819,11 +1827,11 @@ var TitleSuggestionModal = class extends import_obsidian4.Modal {
   async regenerateTitle() {
     try {
       if (!this.editor || !this.view || !this.plugin) {
-        new import_obsidian4.Notice("\u041D\u0435\u0432\u043E\u0437\u043C\u043E\u0436\u043D\u043E \u043F\u0435\u0440\u0435\u0433\u0435\u043D\u0435\u0440\u0438\u0440\u043E\u0432\u0430\u0442\u044C \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043E\u043A");
+        new import_obsidian4.Notice("Cannot regenerate title");
         return;
       }
       this.titleInput.disabled = true;
-      this.titleInput.value = "\u0413\u0435\u043D\u0435\u0440\u0438\u0440\u0443\u044E \u043D\u043E\u0432\u044B\u0439 \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043E\u043A...";
+      this.titleInput.value = "Generating new title...";
       const content = this.editor.getValue();
       const newTitle = await generateTitle(
         content,
@@ -1832,7 +1840,8 @@ var TitleSuggestionModal = class extends import_obsidian4.Modal {
         this.plugin.settings.temperature + 0.2,
         // Увеличиваем температуру для другого стиля
         this.plugin.settings.language,
-        this.plugin.settings.includeExistingTitle
+        this.plugin.settings.includeExistingTitle,
+        this.plugin.settings.maxTitleLength
       );
       this.suggestedTitle = newTitle;
       this.titleInput.value = newTitle;
