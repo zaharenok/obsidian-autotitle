@@ -37,6 +37,9 @@ var DEFAULT_SETTINGS = {
   autoTrigger: false,
   language: "auto",
   replaceMode: false,
+  autoReplaceMode: false,
+  autoIgnoreDeclined: true,
+  ignoredFiles: [],
   timeout: 5e3,
   minContentLength: 100,
   triggerMode: "manual",
@@ -79,6 +82,20 @@ var AutoTitleSettingTab = class extends import_obsidian.PluginSettingTab {
     new import_obsidian.Setting(containerEl).setName("Replace Mode").setDesc("Automatically replace the current title without confirmation").addToggle((toggle) => toggle.setValue(this.plugin.settings.replaceMode).onChange(async (value) => {
       this.plugin.settings.replaceMode = value;
       await this.plugin.saveSettings();
+    }));
+    new import_obsidian.Setting(containerEl).setName("Auto Replace Mode").setDesc("For auto-generation: replace titles without showing confirmation dialog").addToggle((toggle) => toggle.setValue(this.plugin.settings.autoReplaceMode).onChange(async (value) => {
+      this.plugin.settings.autoReplaceMode = value;
+      await this.plugin.saveSettings();
+    }));
+    new import_obsidian.Setting(containerEl).setName("Auto-ignore declined suggestions").setDesc("Automatically add notes to ignore list when title generation is declined").addToggle((toggle) => toggle.setValue(this.plugin.settings.autoIgnoreDeclined).onChange(async (value) => {
+      this.plugin.settings.autoIgnoreDeclined = value;
+      await this.plugin.saveSettings();
+    }));
+    new import_obsidian.Setting(containerEl).setName("Manage ignored files").setDesc(`Currently ignored: ${this.plugin.settings.ignoredFiles.length} files`).addButton((button) => button.setButtonText("Clear ignore list").onClick(async () => {
+      this.plugin.settings.ignoredFiles = [];
+      await this.plugin.saveSettings();
+      this.display();
+      new import_obsidian.Notice("\u0421\u043F\u0438\u0441\u043E\u043A \u0438\u0433\u043D\u043E\u0440\u0438\u0440\u0443\u0435\u043C\u044B\u0445 \u0444\u0430\u0439\u043B\u043E\u0432 \u043E\u0447\u0438\u0449\u0435\u043D");
     }));
     new import_obsidian.Setting(containerEl).setName("Minimum Content Length").setDesc("Minimum number of characters required before auto-generation triggers").addText((text) => text.setPlaceholder("100").setValue(this.plugin.settings.minContentLength.toString()).onChange(async (value) => {
       const length = parseInt(value);
@@ -1140,6 +1157,9 @@ var AutoTitlePlugin = class extends import_obsidian4.Plugin {
     }
     const file = view == null ? void 0 : view.file;
     if (file) {
+      if (this.settings.ignoredFiles.includes(file.path)) {
+        return;
+      }
       const currentCount = this.generatedCountForFile.get(file.path) || 0;
       if (currentCount >= this.settings.generationCount) {
         return;
@@ -1155,7 +1175,7 @@ var AutoTitlePlugin = class extends import_obsidian4.Plugin {
         this.settings.temperature,
         this.settings.language
       );
-      if (this.settings.replaceMode) {
+      if (this.settings.replaceMode || this.settings.autoReplaceMode) {
         await this.replaceTitle(editor, suggestedTitle, view);
         showNotice(`\u0417\u0430\u0433\u043E\u043B\u043E\u0432\u043E\u043A \u043E\u0431\u043D\u043E\u0432\u043B\u0435\u043D: "${suggestedTitle}"`);
         if (file) {
@@ -1224,6 +1244,10 @@ var AutoTitlePlugin = class extends import_obsidian4.Plugin {
       showNotice("\u0413\u0435\u043D\u0435\u0440\u0430\u0446\u0438\u044F \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043A\u0430 \u0443\u0436\u0435 \u0432\u044B\u043F\u043E\u043B\u043D\u044F\u0435\u0442\u0441\u044F...");
       return;
     }
+    if (view && view.file && this.settings.ignoredFiles.includes(view.file.path)) {
+      showNotice("\u0414\u0430\u043D\u043D\u0430\u044F \u0437\u0430\u043C\u0435\u0442\u043A\u0430 \u043D\u0430\u0445\u043E\u0434\u0438\u0442\u0441\u044F \u0432 \u0441\u043F\u0438\u0441\u043A\u0435 \u0438\u0433\u043D\u043E\u0440\u0438\u0440\u0443\u0435\u043C\u044B\u0445");
+      return;
+    }
     const content = editor.getValue();
     if (!content || content.trim().length < 10) {
       showNotice("\u041D\u0435\u0434\u043E\u0441\u0442\u0430\u0442\u043E\u0447\u043D\u043E \u0441\u043E\u0434\u0435\u0440\u0436\u0438\u043C\u043E\u0433\u043E \u0434\u043B\u044F \u0433\u0435\u043D\u0435\u0440\u0430\u0446\u0438\u0438 \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043A\u0430");
@@ -1252,6 +1276,10 @@ var AutoTitlePlugin = class extends import_obsidian4.Plugin {
     }
   }
   async generateTitleForFile(file) {
+    if (this.settings.ignoredFiles.includes(file.path)) {
+      showNotice("\u0414\u0430\u043D\u043D\u0430\u044F \u0437\u0430\u043C\u0435\u0442\u043A\u0430 \u043D\u0430\u0445\u043E\u0434\u0438\u0442\u0441\u044F \u0432 \u0441\u043F\u0438\u0441\u043A\u0435 \u0438\u0433\u043D\u043E\u0440\u0438\u0440\u0443\u0435\u043C\u044B\u0445");
+      return;
+    }
     const content = await this.app.vault.read(file);
     if (!content || content.trim().length < 10) {
       showNotice("\u041D\u0435\u0434\u043E\u0441\u0442\u0430\u0442\u043E\u0447\u043D\u043E \u0441\u043E\u0434\u0435\u0440\u0436\u0438\u043C\u043E\u0433\u043E \u0434\u043B\u044F \u0433\u0435\u043D\u0435\u0440\u0430\u0446\u0438\u0438 \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043A\u0430");
@@ -1277,6 +1305,14 @@ var AutoTitlePlugin = class extends import_obsidian4.Plugin {
           const updatedContent = this.insertTitleIntoContent(content, finalTitle);
           await this.app.vault.modify(file, updatedContent);
           showNotice(`\u0417\u0430\u0433\u043E\u043B\u043E\u0432\u043E\u043A \u0434\u043E\u0431\u0430\u0432\u043B\u0435\u043D \u0432 \u0444\u0430\u0439\u043B: "${finalTitle}"`);
+        } else {
+          if (this.settings.autoIgnoreDeclined && file) {
+            if (!this.settings.ignoredFiles.includes(file.path)) {
+              this.settings.ignoredFiles.push(file.path);
+              await this.saveSettings();
+              showNotice(`\u0417\u0430\u043C\u0435\u0442\u043A\u0430 \u0434\u043E\u0431\u0430\u0432\u043B\u0435\u043D\u0430 \u0432 \u0441\u043F\u0438\u0441\u043E\u043A \u0438\u0433\u043D\u043E\u0440\u0438\u0440\u0443\u0435\u043C\u044B\u0445`);
+            }
+          }
         }
       }, null, null, this).open();
     } catch (error) {
@@ -1299,6 +1335,14 @@ var AutoTitlePlugin = class extends import_obsidian4.Plugin {
         }
         if (view.file) {
           this.renameFile(view.file, finalTitle);
+        }
+      } else {
+        if (this.settings.autoIgnoreDeclined && view && view.file) {
+          if (!this.settings.ignoredFiles.includes(view.file.path)) {
+            this.settings.ignoredFiles.push(view.file.path);
+            await this.saveSettings();
+            showNotice(`\u0417\u0430\u043C\u0435\u0442\u043A\u0430 \u0434\u043E\u0431\u0430\u0432\u043B\u0435\u043D\u0430 \u0432 \u0441\u043F\u0438\u0441\u043E\u043A \u0438\u0433\u043D\u043E\u0440\u0438\u0440\u0443\u0435\u043C\u044B\u0445`);
+          }
         }
       }
     }, editor, view, this).open();
@@ -1363,6 +1407,10 @@ var AutoTitlePlugin = class extends import_obsidian4.Plugin {
   async generateTitleDirect(editor, view) {
     if (this.isGenerating) {
       showNotice("\u0413\u0435\u043D\u0435\u0440\u0430\u0446\u0438\u044F \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043A\u0430 \u0443\u0436\u0435 \u0432\u044B\u043F\u043E\u043B\u043D\u044F\u0435\u0442\u0441\u044F...");
+      return;
+    }
+    if (view && view.file && this.settings.ignoredFiles.includes(view.file.path)) {
+      showNotice("\u0414\u0430\u043D\u043D\u0430\u044F \u0437\u0430\u043C\u0435\u0442\u043A\u0430 \u043D\u0430\u0445\u043E\u0434\u0438\u0442\u0441\u044F \u0432 \u0441\u043F\u0438\u0441\u043A\u0435 \u0438\u0433\u043D\u043E\u0440\u0438\u0440\u0443\u0435\u043C\u044B\u0445");
       return;
     }
     const content = editor.getValue();
