@@ -4,7 +4,7 @@ Automatically generate meaningful titles for your Obsidian notes using OpenAI's 
 
 ## 🚀 Features
 
-- 🤖 **Latest AI Models** - Powered by OpenAI's cutting-edge GPT models including GPT-4o, GPT-4o-mini, GPT-4 Turbo, and GPT-4
+- 🤖 **Latest AI Models** - Powered by OpenAI's cutting-edge GPT models including GPT-5, GPT-4o, GPT-4o-mini, GPT-4 Turbo, and GPT-4
 - 🔄 **Flexible Generation Modes** - Manual, semi-automatic, or fully automatic title generation
 - 🌍 **Multi-language Support** - Auto-detect language or choose from 20+ supported languages
 - ⚡ **Instant Generation** - Quick hotkey access with `Ctrl+Shift+H` (Windows/Linux) or `Cmd+Shift+H` (Mac)
@@ -13,22 +13,30 @@ Automatically generate meaningful titles for your Obsidian notes using OpenAI's 
 - 🔒 **Privacy-First** - Your API key stays local, no data logging or storage
 - ✨ **Duplicate Prevention** - Automatically prevents duplicate titles in note content
 - 🔧 **Migration Tools** - Fix existing notes with duplicate titles
+- 🚀 **Batch Processing** - Generate titles for multiple notes simultaneously
+- 🎯 **Smart Context** - Analyzes note content intelligently for better title generation
+- ⚙️ **Advanced Configuration** - Temperature control, timeout settings, and generation limits
 
 ## 📦 Installation
 
 ### From Obsidian Community Plugins (Recommended)
 
-1. Open **Obsidian Settings**
-2. Navigate to **Community Plugins** and disable **Safe Mode**
-3. Click **Browse** and search for **"AutoTitle"**
-4. Click **Install** and then **Enable**
+1. Open **Obsidian Settings** (⚙️ icon or `Ctrl/Cmd + ,`)
+2. Navigate to **Community Plugins** in the left sidebar
+3. Disable **Safe Mode** if it's currently enabled
+4. Click **Browse** and search for **"AutoTitle"**
+5. Click **Install** and then **Enable**
+6. Configure your OpenAI API key in the plugin settings
 
 ### Manual Installation
 
-1. Download the latest release files (`main.js`, `manifest.json`, `styles.css`)
-2. Create folder: `VaultFolder/.obsidian/plugins/autotitle/`
-3. Copy the files to this folder
-4. Restart Obsidian and enable the plugin
+1. Download the latest release files (`main.js`, `manifest.json`, `styles.css`) from the [releases page](https://github.com/zaharenok/obsidian-autotitle/releases)
+2. Navigate to your Obsidian vault folder
+3. Create the plugins directory: `YourVault/.obsidian/plugins/autotitle/`
+4. Copy the downloaded files to this folder
+5. Restart Obsidian
+6. Go to **Settings** → **Community Plugins** → **AutoTitle** and enable the plugin
+7. Configure your OpenAI API key in the plugin settings
 
 ## ⚙️ Setup & Configuration
 
@@ -86,19 +94,26 @@ Automatically generate meaningful titles for your Obsidian notes using OpenAI's 
 
 ## 🤖 AI Models Explained
 
+### GPT-5 (Latest & Most Powerful)
+
+- **Best for**: Highest quality titles with advanced reasoning and multimodal capabilities
+- **Strengths**: Superior understanding of context, enhanced safety, reduced hallucination, advanced reasoning
+- **Cost**: Premium pricing (~$0.002-0.008 per title)
+- **Use when**: You need the absolute best quality and can afford premium pricing
+
 ### GPT-4o (Recommended)
 
 - **Best for**: High-quality, nuanced titles with superior reasoning
-- **Strengths**: Excellent understanding of context, tone, and multimodal capabilities
-- **Cost**: Standard pricing
-- **Use when**: You want the best balance of quality and performance
+- **Strengths**: Excellent understanding of context, tone, and multimodal capabilities, 128K context window
+- **Cost**: Standard pricing (~$0.0005-0.002 per title)
+- **Use when**: You want the best balance of quality and performance for most use cases
 
 ### GPT-4o-mini (Cost-Effective)
 
-- **Best for**: Fast, cost-effective generation
-- **Strengths**: Excellent balance of quality and speed, 128K context window
-- **Cost**: Most budget-friendly option
-- **Use when**: You need frequent title generation at low cost
+- **Best for**: Fast, cost-effective generation with excellent quality
+- **Strengths**: Excellent balance of quality and speed, 128K context window, latest model
+- **Cost**: Most budget-friendly option (~$0.00015-0.0006 per title)
+- **Use when**: You need frequent title generation at low cost without sacrificing quality
 
 ### GPT-4 Turbo
 
@@ -126,7 +141,7 @@ Automatically generate meaningful titles for your Obsidian notes using OpenAI's 
 | Setting                      | Description                                 | Options                                                  | Default     |
 | ---------------------------- | ------------------------------------------- | -------------------------------------------------------- | ----------- |
 | **OpenAI API Key**           | Your personal API key                       | Text input                                               | Required    |
-| **AI Model**                 | Choose the AI model                         | GPT-4o, GPT-4o-mini, GPT-4 Turbo, GPT-4, GPT-3.5 Turbo | GPT-4o-mini |
+| **AI Model**                 | Choose the AI model                         | GPT-5, GPT-4o, GPT-4o-mini, GPT-4 Turbo, GPT-4, GPT-3.5 Turbo | GPT-4o-mini |
 | **Creativity (Temperature)** | Controls randomness in generation           | 0.0 (conservative) - 1.0 (creative)                      | 0.3         |
 | **Trigger Mode**             | How titles are generated                    | Manual, Semi-auto, Auto                                  | Manual      |
 | **Language**                 | Target language for titles                  | Auto-detect, English, Spanish, French, etc.              | Auto-detect |
@@ -204,13 +219,15 @@ for the support and looking forward to tomorrow's challenges.
 
 #### "API Key Invalid" Error
 - **Solution**: Verify your API key is correct and active
-- **Check**: Ensure the key starts with `sk-` and has no extra spaces
-- **Verify**: Log into OpenAI platform to confirm key status
+- **Check**: Ensure the key starts with `sk-` and has no extra spaces or line breaks
+- **Verify**: Log into [OpenAI Platform](https://platform.openai.com/api-keys) to confirm key status
+- **Note**: API keys are case-sensitive and must be copied exactly
 
 #### "Insufficient Credits" Error
 - **Solution**: Add credits to your OpenAI account
 - **Check**: Visit [OpenAI Billing](https://platform.openai.com/account/billing)
-- **Note**: New accounts often include free credits
+- **Note**: New accounts include $5 in free credits (as of 2024)
+- **Tip**: Monitor your usage in the OpenAI dashboard to avoid unexpected charges
 
 #### Titles in Wrong Language
 - **Solution**: Set specific language instead of auto-detect
@@ -233,12 +250,24 @@ for the support and looking forward to tomorrow's challenges.
 - **Prevention**: The plugin now automatically prevents new duplicates
 - **Migration**: Run the migration tool to fix existing notes
 
+#### "Rate Limit Exceeded" Error
+- **Solution**: Wait a few minutes before trying again
+- **Check**: Monitor your API usage in the OpenAI dashboard
+- **Tip**: Consider switching to GPT-4o-mini for higher rate limits
+- **Note**: Rate limits vary by model and account type
+
+#### Plugin Not Appearing in Settings
+- **Solution**: Ensure the plugin is properly installed in the correct directory
+- **Check**: Verify files are in `YourVault/.obsidian/plugins/autotitle/`
+- **Restart**: Completely restart Obsidian after installation
+- **Enable**: Manually enable the plugin in Community Plugins settings
+
 ### Performance Tips
 
 1. **For Speed**: Use GPT-4o-mini model
-2. **For Quality**: Use GPT-4o or GPT-4 Turbo model
+2. **For Quality**: Use GPT-5 or GPT-4o model
 3. **For Cost**: Use GPT-4o-mini or GPT-3.5 Turbo
-4. **For Latest Features**: Use GPT-4o model
+4. **For Latest Features**: Use GPT-5 model
 5. **For Accuracy**: Provide more context in your notes
 6. **For Consistency**: Set specific language instead of auto-detect
 
@@ -252,23 +281,26 @@ for the support and looking forward to tomorrow's challenges.
 
 ## 💰 Cost Considerations
 
-Title generation costs depend on your chosen model:
+Title generation costs depend on your chosen model (as of 2024):
 
-- **GPT-4o-mini**: ~$0.0001-0.0003 per title (most economical)
-- **GPT-3.5 Turbo**: ~$0.0002-0.0004 per title (budget-friendly)
-- **GPT-4o**: ~$0.001-0.003 per title (recommended)
-- **GPT-4 Turbo**: ~$0.002-0.005 per title (premium)
-- **GPT-4**: ~$0.003-0.008 per title (highest quality)
+- **GPT-5**: ~$0.002-0.008 per title (latest & most powerful)
+- **GPT-4o-mini**: ~$0.00015-0.0006 per title (most economical)
+- **GPT-3.5 Turbo**: ~$0.0001-0.0002 per title (budget-friendly)
+- **GPT-4o**: ~$0.0005-0.002 per title (recommended)
+- **GPT-4 Turbo**: ~$0.001-0.004 per title (premium)
+- **GPT-4**: ~$0.002-0.006 per title (high quality)
 
-_Costs are approximate and depend on content length and OpenAI's current pricing._
+_Costs are approximate and depend on content length. OpenAI pricing may change over time. Check [OpenAI Pricing](https://openai.com/pricing) for current rates._
 
 ## 🆘 Support & Community
 
 ### Getting Help
 
 - **GitHub Issues**: [Report bugs or request features](https://github.com/zaharenok/obsidian-autotitle/issues)
+- **GitHub Discussions**: [Join community discussions](https://github.com/zaharenok/obsidian-autotitle/discussions)
 - **Obsidian Forum**: Search for "AutoTitle" in community discussions
 - **Documentation**: Comprehensive guides available in the repository
+- **Discord**: Join the Obsidian Discord server and search for "AutoTitle"
 
 ### Contributing
 
