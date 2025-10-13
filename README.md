@@ -4,7 +4,7 @@ Automatically generate meaningful titles for your Obsidian notes using OpenAI's 
 
 ## 🚀 Features
 
-- 🤖 **Latest AI Models** - Powered by OpenAI's cutting-edge GPT models including GPT-5, GPT-4o, GPT-4o-mini, GPT-4 Turbo, and GPT-4
+- 🤖 **Latest AI Models** - Powered by OpenAI's GPT-4o family plus GPT-4 Turbo, GPT-4, and GPT-3.5 Turbo
 - 🔄 **Flexible Generation Modes** - Manual, semi-automatic, or fully automatic title generation
 - 🌍 **Multi-language Support** - Auto-detect language or choose from 20+ supported languages
 - ⚡ **Instant Generation** - Quick hotkey access with `Ctrl+Shift+H` (Windows/Linux) or `Cmd+Shift+H` (Mac)
@@ -94,13 +94,6 @@ Automatically generate meaningful titles for your Obsidian notes using OpenAI's 
 
 ## 🤖 AI Models Explained
 
-### GPT-5 (Latest & Most Powerful)
-
-- **Best for**: Highest quality titles with advanced reasoning and multimodal capabilities
-- **Strengths**: Superior understanding of context, enhanced safety, reduced hallucination, advanced reasoning
-- **Cost**: Premium pricing (~$0.002-0.008 per title)
-- **Use when**: You need the absolute best quality and can afford premium pricing
-
 ### GPT-4o (Recommended)
 
 - **Best for**: High-quality, nuanced titles with superior reasoning
@@ -129,19 +122,21 @@ Automatically generate meaningful titles for your Obsidian notes using OpenAI's 
 - **Cost**: Premium pricing
 - **Use when**: Quality is more important than speed or cost
 
-### GPT-3.5 Turbo (Legacy)
+### GPT-3.5 Turbo
 
 - **Best for**: Basic title generation needs
-- **Strengths**: Fast and economical
-- **Cost**: Lowest cost option
-- **Use when**: Budget is the primary concern
+- **Strengths**: Fast and economical with broad availability
+- **Cost**: Lowest cost option (~$0.0001-0.0004 per title)
+- **Use when**: Budget is the primary concern or when the note requires only light summarization
+
+> **Note:** GPT-5 and GPT-4.1 models are not yet available in the plugin UI. Support will be added once OpenAI exposes stable API endpoints for those models.
 
 ## ⚙️ Settings Reference
 
 | Setting                      | Description                                 | Options                                                  | Default     |
 | ---------------------------- | ------------------------------------------- | -------------------------------------------------------- | ----------- |
 | **OpenAI API Key**           | Your personal API key                       | Text input                                               | Required    |
-| **AI Model**                 | Choose the AI model                         | GPT-5, GPT-4o, GPT-4o-mini, GPT-4 Turbo, GPT-4, GPT-3.5 Turbo | GPT-4o-mini |
+| **AI Model**                 | Choose the AI model                         | GPT-4o, GPT-4o-mini, GPT-4 Turbo, GPT-4, GPT-3.5 Turbo | GPT-4o-mini |
 | **Creativity (Temperature)** | Controls randomness in generation           | 0.0 (conservative) - 1.0 (creative)                      | 0.3         |
 | **Trigger Mode**             | How titles are generated                    | Manual, Semi-auto, Auto                                  | Manual      |
 | **Language**                 | Target language for titles                  | Auto-detect, English, Spanish, French, etc.              | Auto-detect |
@@ -265,9 +260,9 @@ for the support and looking forward to tomorrow's challenges.
 ### Performance Tips
 
 1. **For Speed**: Use GPT-4o-mini model
-2. **For Quality**: Use GPT-5 or GPT-4o model
+2. **For Quality**: Use GPT-4o model
 3. **For Cost**: Use GPT-4o-mini or GPT-3.5 Turbo
-4. **For Latest Features**: Use GPT-5 model
+4. **For Latest Features**: Monitor OpenAI announcements; new models will be added once stable
 5. **For Accuracy**: Provide more context in your notes
 6. **For Consistency**: Set specific language instead of auto-detect
 
@@ -283,7 +278,6 @@ for the support and looking forward to tomorrow's challenges.
 
 Title generation costs depend on your chosen model (as of 2024):
 
-- **GPT-5**: ~$0.002-0.008 per title (latest & most powerful)
 - **GPT-4o-mini**: ~$0.00015-0.0006 per title (most economical)
 - **GPT-3.5 Turbo**: ~$0.0001-0.0002 per title (budget-friendly)
 - **GPT-4o**: ~$0.0005-0.002 per title (recommended)
