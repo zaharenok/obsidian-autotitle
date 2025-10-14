@@ -1,9 +1,9 @@
 {
   "id": "autotitle",
   "name": "AutoTitle",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "minAppVersion": "0.15.0",
-  "description": "Automatically generate titles for your notes using the latest OpenAI models (GPT-4.1, GPT-4.1 mini, GPT-4o, GPT-4o-mini)",
+  "description": "Automatically generate titles for your notes using the latest OpenAI models (GPT-4o, GPT-4o-mini, GPT-4 Turbo, GPT-4)",
   "author": "zaharenok",
   "authorUrl": "https://github.com/zaharenok",
   "fundingUrl": "https://github.com/sponsors/zaharenok",
