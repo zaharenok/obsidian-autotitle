@@ -3,13 +3,13 @@
 This document captures the local checks performed for pull request [obsidianmd/obsidian-releases#8037](https://github.com/obsidianmd/obsidian-releases/pull/8037) and the items to monitor after submission.
 
 ## Local validation summary
-- Manifest: `manifest.json` declares `id: "autotitle"`, `version: "1.0.1"`, and `minAppVersion: "0.15.0"`, matching the community entry.
-- Release assets: GitHub release `1.0.1` contains `main.js`, `manifest.json`, `styles.css`.
+- Manifest: `manifest.json` declares `id: "autotitle"`, `version: "1.0.0"`, and `minAppVersion: "0.15.0"`, matching the community entry.
+- Release assets: GitHub release `1.0.0` contains `main.js`, `manifest.json`, `styles.css`.
 - Documentation: `README.md` includes install, configuration, and usage guidance.
 - License: `LICENSE` file present.
 
 ## GitHub follow-up checklist
-- Confirm the release tag in `zaharenok/obsidian-autotitle` remains **1.0.1** so validator sees matching tag and manifest version.
+- Confirm the release tag in `zaharenok/obsidian-autotitle` remains **1.0.0** so validator sees matching tag and manifest version.
 - Ensure the PR body uses the community plugin template with all checkboxes marked.
 - Wait for automation (`plugin-ci`) to complete successfully; investigate any failures (manifest mismatch, missing assets, formatting).
 - Review bot comments for any requested metadata changes or clarifications.
