@@ -308,6 +308,24 @@ _Costs are approximate and depend on content length. OpenAI pricing may change o
 - **Bug Reports**: Help improve the plugin by reporting issues
 - **Feature Requests**: Suggest new functionality
 
+## 💻 Development
+
+**Source Code**: [AutoTitle_Obsidian_plugin](https://github.com/zaharenok/AutoTitle_Obsidian_plugin)
+
+The source code for this plugin is available in a separate repository. This includes:
+- TypeScript source files
+- Development configuration
+- Build scripts
+- ESLint configuration
+
+To build from source:
+```bash
+git clone https://github.com/zaharenok/AutoTitle_Obsidian_plugin.git
+cd AutoTitle_Obsidian_plugin
+npm install
+npm run build
+```
+
 ## 📄 License
 
 MIT License - See the repository for full license details.
